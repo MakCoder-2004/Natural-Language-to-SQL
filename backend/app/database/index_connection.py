@@ -34,6 +34,20 @@ class IndexDatabase:
         except SQLAlchemyError as exc:
             raise DatabaseUnavailableError("The index database operation failed.") from exc
 
+    @contextmanager
+    def begin(self) -> Iterator[Connection]:
+        """Yield a transactional index connection and translate failures safely."""
+
+        try:
+            with self.engine.begin() as connection:
+                yield connection
+        except OperationalError as exc:
+            raise DatabaseUnavailableError("The index database is unavailable.") from exc
+        except DBAPIError as exc:
+            raise DatabaseUnavailableError("The index database operation failed.") from exc
+        except SQLAlchemyError as exc:
+            raise DatabaseUnavailableError("The index database operation failed.") from exc
+
     def dispose(self) -> None:
         """Release pooled index connections."""
 

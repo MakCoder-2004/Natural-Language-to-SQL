@@ -21,13 +21,13 @@ INDEX_DATABASE = "index_fixture"
 def postgres_fixture() -> Iterator[PostgresIntegrationFixture]:
     with (
         PostgresContainer(
-            image="postgres:16",
+            image="pgvector/pgvector:pg16",
             username=ADMIN_USERNAME,
             password=ADMIN_PASSWORD,
             dbname=SOURCE_DATABASE,
         ) as source_container,
         PostgresContainer(
-            image="postgres:16",
+            image="pgvector/pgvector:pg16",
             username=ADMIN_USERNAME,
             password=ADMIN_PASSWORD,
             dbname=INDEX_DATABASE,
@@ -106,6 +106,7 @@ def _initialize_source_database(admin_url: URL) -> None:
         GROUP BY account_id
         """,
         "CREATE TABLE internal.not_in_scope (secret_value text)",
+        "COMMENT ON SCHEMA analytics IS 'Approved analytics schema'",
         "COMMENT ON TABLE analytics.accounts IS 'Accounts available for analytics'",
         (
             "COMMENT ON COLUMN analytics.accounts.external_code "

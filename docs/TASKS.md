@@ -186,9 +186,9 @@ Source metadata + semantic metadata
 - [x] Include qualified identifiers, types, constraints, relationships, and descriptions.
 - [x] Include source fingerprint and document version in every indexed document.
 - [x] Define document categories for tables, columns, relationships, and semantic concepts.
-- [ ] Enable the pgvector extension in the local index database.
-- [ ] Define local index tables for documents, embeddings, metadata, and index runs.
-- [ ] Keep local index schema initialization separate from source business schema management.
+- [x] Enable the pgvector extension in the local index database.
+- [x] Define local index tables for documents, embeddings, metadata, and index runs.
+- [x] Keep local index schema initialization separate from source business schema management.
 - [ ] Implement embedding generation through the configured embedding model.
 - [ ] Implement idempotent document upsert behavior.
 - [ ] Store source fingerprints and indexing timestamps.
