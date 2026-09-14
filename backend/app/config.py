@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     index_database_url: SecretStr | None = None
     openrouter_api_key: SecretStr | None = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_site_url: str | None = None
+    openrouter_site_name: str | None = None
 
     question_model: str | None = None
     sql_model: str | None = None

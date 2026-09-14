@@ -182,10 +182,10 @@ Source metadata + semantic metadata
 - [x] Support descriptions for discovered schemas, tables, columns, and relationships.
 - [x] Ensure semantic metadata can describe arbitrary source identifiers.
 - [x] Define metadata behavior for missing or stale semantic descriptions.
-- [ ] Build schema documents from technical metadata.
-- [ ] Include qualified identifiers, types, constraints, relationships, and descriptions.
-- [ ] Include source fingerprint and document version in every indexed document.
-- [ ] Define document categories for tables, columns, relationships, and semantic concepts.
+- [x] Build schema documents from technical metadata.
+- [x] Include qualified identifiers, types, constraints, relationships, and descriptions.
+- [x] Include source fingerprint and document version in every indexed document.
+- [x] Define document categories for tables, columns, relationships, and semantic concepts.
 - [ ] Enable the pgvector extension in the local index database.
 - [ ] Define local index tables for documents, embeddings, metadata, and index runs.
 - [ ] Keep local index schema initialization separate from source business schema management.
