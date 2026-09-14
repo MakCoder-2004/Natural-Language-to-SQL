@@ -83,12 +83,12 @@ configuration handling, and initial health reporting.
 - [x] Configure the frontend runtime, package manager, and dependency management.
 - [x] Add formatting, linting, type-checking, and test commands for the backend.
 - [x] Add formatting, linting, type-checking, and test commands for the frontend.
-- [ ] Add `.env.example` containing placeholders only.
-- [ ] Define `SOURCE_DATABASE_URL` configuration.
-- [ ] Define `INDEX_DATABASE_URL` configuration.
-- [ ] Define OpenRouter API key and model-role configuration.
-- [ ] Define query timeout, returned-row, result-byte, and correction-retry limits.
-- [ ] Define source schema scope configuration.
+- [x] Add `.env.example` containing placeholders only.
+- [x] Define `SOURCE_DATABASE_URL` configuration.
+- [x] Define `INDEX_DATABASE_URL` configuration.
+- [x] Define OpenRouter API key and model-role configuration.
+- [x] Define query timeout, returned-row, result-byte, and correction-retry limits.
+- [x] Define source schema scope configuration.
 - [ ] Add Docker Compose for the backend, frontend, and local pgvector database.
 - [ ] Do not add a source business database container, business migrations, or business seed data.
 - [ ] Add initial backend startup configuration validation.

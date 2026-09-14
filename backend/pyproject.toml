@@ -49,7 +49,6 @@ indent-style = "space"
 python_version = "3.12"
 strict = true
 files = ["app", "tests"]
-exclude = ["^\.venv/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
