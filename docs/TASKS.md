@@ -73,12 +73,12 @@ configuration handling, and initial health reporting.
 
 ### Checklist
 
-- [ ] Create the `backend/` directory and application package structure.
-- [ ] Create the `frontend/` directory and application package structure.
-- [ ] Create `schema_index/metadata/` and `schema_index/scripts/` directories.
-- [ ] Create `evaluation/datasets/`, `evaluation/runners/`, and `evaluation/reports/` directories.
-- [ ] Create `tests/fixtures/` and keep fixture database setup isolated from production code.
-- [ ] Create documentation directories for architecture, security, retrieval, and evaluation.
+- [x] Create the `backend/` directory and application package structure.
+- [x] Create the `frontend/` directory and application package structure.
+- [x] Create `schema_index/metadata/` and `schema_index/scripts/` directories.
+- [x] Create `evaluation/datasets/`, `evaluation/runners/`, and `evaluation/reports/` directories.
+- [x] Create `tests/fixtures/` and keep fixture database setup isolated from production code.
+- [x] Create documentation directories for architecture, security, retrieval, and evaluation.
 - [ ] Configure the backend language version and dependency management.
 - [ ] Configure the frontend runtime, package manager, and dependency management.
 - [ ] Add formatting, linting, type-checking, and test commands for the backend.
