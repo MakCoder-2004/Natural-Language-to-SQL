@@ -5,12 +5,12 @@ application for an existing PostgreSQL database. It retrieves relevant schema
 metadata, proposes SQL, validates it deterministically, and executes only
 approved read-only queries.
 
-The project is currently at Milestone 3: Schema Documentation and Indexing. The
-repository contains isolated source and index database services, scoped
-PostgreSQL metadata introspection, read-only access verification, versioned
-semantic metadata, deterministic schema documents, LangChain-backed OpenRouter
-embeddings, repeatable pgvector indexing, and index freshness reporting.
-Query retrieval and SQL generation are added in later milestones.
+The project is currently at Milestone 4: Hybrid Schema Retrieval. The repository
+contains isolated source and index database services, scoped PostgreSQL metadata
+introspection, read-only access verification, versioned semantic metadata,
+deterministic schema documents, LangChain-backed OpenRouter embeddings,
+repeatable pgvector indexing, index freshness reporting, and bounded hybrid
+retrieval. SQL generation and execution are added in later milestones.
 
 ## Architecture Boundary
 
@@ -125,6 +125,19 @@ The operation is idempotent. It stages a complete run and promotes it
 atomically, preserving the previous active index when embedding or database
 work fails. It never writes to the external source schema.
 
+## Hybrid Schema Retrieval
+
+Milestone 4 retrieves compact schema context from the local index by combining
+LangChain query embeddings, PostgreSQL keyword and identifier matching, and
+weighted reciprocal-rank fusion. High-confidence tables receive bounded
+foreign-key expansion, while selected columns and join keys are retained in a
+structured result. Retrieval fails closed for missing, stale, failed, or
+unavailable indexes and never falls back to the full schema.
+
+Retrieval limits are backend-only settings. They cannot be supplied by a model
+or browser client. The retrieval service is an internal backend capability; a
+public natural-language query endpoint is introduced in a later milestone.
+
 ## Direct Development Commands
 
 The backend commands are provided by `backend/pyproject.toml` and its `uv.lock`:
@@ -155,7 +168,7 @@ npm run build
 
 ## Scope
 
-Milestone 3 still does not include hybrid retrieval, SQL generation, SQL
-validation, or public database query execution. Representative test schemas
-and rows belong only under `backend/tests/fixtures/` and are created inside
-disposable integration containers.
+Milestone 4 does not include SQL generation, SQL validation, or public database
+query execution. Representative test schemas and rows belong only under
+`backend/tests/fixtures/` and are created inside disposable integration
+containers.

@@ -27,7 +27,8 @@ The following values are backend-only:
 - `OPENROUTER_API_KEY`
 - Model role identifiers
 - Semantic metadata path and OpenRouter attribution values
-- Query limits and source scope
+- Query, retrieval, and context limits
+- Source scope
 
 The frontend receives no backend environment file. `VITE_API_BASE_URL` is a
 public browser configuration value and does not contain credentials.
@@ -106,6 +107,12 @@ uv run mypy app tests
 uv run pytest
 uv run pytest tests/integration -m integration
 ```
+
+After a successful index run, the internal
+`HybridSchemaRetrievalService` combines vector and PostgreSQL keyword signals
+from `index-db`. Retrieval requires a ready index whose source fingerprint and
+semantic metadata digest match the current source. It does not expose a public
+query route yet and it never queries business rows for schema retrieval.
 
 Frontend setup and checks use npm scripts from `frontend/package.json`:
 

@@ -80,6 +80,45 @@ descriptions only. Source business rows are never sampled or embedded. The
 health endpoint compares the active source fingerprint and semantic metadata
 digest with the current source and configuration before reporting `ready`.
 
+## Hybrid Retrieval
+
+Milestone 4 keeps the local index repository as the storage boundary and uses
+LangChain for the retrieval integration boundary:
+
+```text
+natural-language question
+        |
+        +--> LangChain OpenAI-compatible query embedding
+        |          -> bounded pgvector search in index-db
+        |
+        +--> PostgreSQL full-text and identifier search in index-db
+                   |
+                   v
+        LangChain weighted reciprocal-rank fusion
+                   |
+                   v
+        deterministic table/column ranking
+                   |
+                   v
+        bounded foreign-key expansion
+                   |
+                   v
+        compact structured schema context
+```
+
+The retrieval service validates index readiness before either search signal
+runs. It derives the source key and current fingerprint from backend-owned
+source metadata, but all candidate documents, vectors, and relationship reads
+come from `IndexDatabase`. It does not use LangChain's deprecated community
+`PGVector` storage because that would create a second unmanaged index schema.
+
+Vector and keyword results are exposed through LangChain `BaseRetriever`
+adapters and `Document` values. LangChain's `EnsembleRetriever` weighted
+reciprocal-rank function provides the initial signal fusion; application code
+then applies table selection, relationship bounds, source validation, and
+context-size limits. The model cannot control source scope, database handles,
+retrieval limits, or index SQL.
+
 The health endpoint performs bounded source and index probes. Source health also
 checks the configured role's read-only permissions. Database URLs, passwords,
 and raw driver errors never appear in health responses or normal logs.

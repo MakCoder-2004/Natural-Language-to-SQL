@@ -101,6 +101,10 @@ def test_source_and_index_urls_must_be_distinct() -> None:
         ("source_max_overflow", -1),
         ("index_pool_size", -1),
         ("index_max_overflow", -1),
+        ("retrieval_vector_candidate_limit", 257),
+        ("retrieval_max_selected_tables", 257),
+        ("retrieval_max_relationship_hops", 2),
+        ("retrieval_max_context_characters", 100_001),
     ],
 )
 def test_limits_are_bounded(field: str, value: int) -> None:
@@ -128,3 +132,17 @@ def test_schema_scope_removes_duplicate_names_without_reordering() -> None:
     settings = make_settings(source_schema_scope="analytics, reporting, analytics")
 
     assert settings.source_schema_names == ("analytics", "reporting")
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("retrieval_min_vector_similarity", -0.1),
+        ("retrieval_min_vector_similarity", 1.1),
+        ("retrieval_vector_weight", 0.0),
+        ("retrieval_keyword_weight", -0.1),
+    ],
+)
+def test_retrieval_scores_are_bounded(field: str, value: float) -> None:
+    with pytest.raises(ValidationError):
+        make_settings(**{field: value})

@@ -50,3 +50,27 @@ Connection failures and permission failures are mapped to safe application
 categories. Internal causes may be retained for diagnostics, but credentials,
 connection URLs, passwords, and raw database exception details are not returned
 to clients.
+
+## Retrieval Boundaries
+
+Hybrid retrieval reads only promoted schema documents and embeddings from the
+separate local index database. The source database is used only for bounded
+technical metadata readiness checks; source business rows are not read or
+embedded by retrieval.
+
+The vector and keyword candidate counts, table/column limits, relationship hop
+limit, and context size are backend-owned settings. Retrieval filters every
+candidate by the trusted source key and current source fingerprint, rejects
+stale or failed indexes, and never accepts a source scope or unrestricted
+`top_k` from a model or frontend.
+
+Foreign-key expansion is limited to immediate relationships of high-confidence
+selected tables. Direction and join columns come from indexed technical
+metadata, not model-generated names. Retrieved comments and semantic
+descriptions remain untrusted data and cannot change tool permissions,
+workflow state, database selection, or SQL policy.
+
+Retrieval diagnostics contain counts, safe fingerprints, limits, and latency
+measurements only. They do not contain vectors, credentials, connection URLs,
+database rows, or raw driver exceptions. If no credible schema context exists,
+retrieval returns a safe failure and does not authorize later SQL generation.

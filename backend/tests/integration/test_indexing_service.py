@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from app.config import Settings
-from app.database.errors import EmbeddingServiceError
+from app.database.errors import EmbeddingServiceError, IndexReadinessError
 from app.database.index_repository import IndexRepository
 from app.database.services import create_database_services
 from app.services.health import build_health_response
@@ -132,6 +132,7 @@ def test_hybrid_schema_retrieval_returns_bounded_context_and_relationships(
         tmp_path,
         retrieval_max_selected_tables=1,
         retrieval_max_columns_per_table=2,
+        retrieval_max_relationships=1,
         retrieval_max_expanded_tables=1,
     )
     services = create_database_services(settings)
@@ -147,7 +148,9 @@ def test_hybrid_schema_retrieval_returns_bounded_context_and_relationships(
         assert run.status == "succeeded"
         assert result.index_fingerprint == run.source_fingerprint
         assert len(result.tables) <= 2
+        assert len(result.tables) < 4
         assert len(result.columns) <= 4
+        assert len(result.relationships) <= 1
         assert len(result.context_text) <= settings.retrieval_max_context_characters
         assert result.diagnostics.vector_candidate_count > 0
         assert result.diagnostics.keyword_candidate_count > 0
@@ -156,6 +159,20 @@ def test_hybrid_schema_retrieval_returns_bounded_context_and_relationships(
         assert all(relationship.source_columns for relationship in result.relationships)
         assert all(relationship.target_columns for relationship in result.relationships)
         assert '"internal"' not in result.context_text
+
+        stale_metadata = tmp_path / "changed-metadata.yaml"
+        stale_metadata.write_text(
+            "metadata_version: 1\nschemas:\n  - name: analytics\n    description: changed\n",
+            encoding="utf-8",
+        )
+        stale_settings = settings.model_copy(update={"semantic_metadata_path": str(stale_metadata)})
+        with pytest.raises(IndexReadinessError) as raised:
+            HybridSchemaRetrievalService(
+                stale_settings,
+                services,
+                embedding_provider=provider,
+            ).retrieve("events")
+        assert raised.value.reason == "index_stale"
     finally:
         services.dispose()
 
@@ -167,6 +184,7 @@ def _test_settings(
     embedding_batch_size: int = 64,
     retrieval_max_selected_tables: int = 8,
     retrieval_max_columns_per_table: int = 12,
+    retrieval_max_relationships: int = 8,
     retrieval_max_expanded_tables: int = 4,
 ) -> Settings:
     return fixture_settings(fixture).model_copy(
@@ -175,6 +193,7 @@ def _test_settings(
             "embedding_batch_size": embedding_batch_size,
             "retrieval_max_selected_tables": retrieval_max_selected_tables,
             "retrieval_max_columns_per_table": retrieval_max_columns_per_table,
+            "retrieval_max_relationships": retrieval_max_relationships,
             "retrieval_max_expanded_tables": retrieval_max_expanded_tables,
         }
     )

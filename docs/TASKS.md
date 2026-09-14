@@ -227,32 +227,32 @@ relationship signals.
 
 ### Checklist
 
-- [ ] Implement semantic vector retrieval from the local index.
-- [ ] Implement keyword or metadata retrieval from the local index.
-- [ ] Combine retrieval signals using explicit ranking logic.
-- [ ] Make retrieval limits configurable.
-- [ ] Implement table and column candidate ranking.
-- [ ] Implement bounded foreign-key relationship expansion.
-- [ ] Include nearby tables and columns only when justified by retrieved candidates.
-- [ ] Include semantic descriptions in ranking and final context.
-- [ ] Remove duplicate documents and redundant metadata.
-- [ ] Produce a compact structured retrieval result.
-- [ ] Include source fingerprint and retrieval diagnostics in the result.
-- [ ] Handle an empty or unavailable index safely.
-- [ ] Return a clear index-readiness error when runtime retrieval is impossible.
-- [ ] Add retrieval latency measurements.
-- [ ] Add tests for keyword retrieval.
-- [ ] Add tests for vector retrieval.
-- [ ] Add tests for signal merging and ranking.
-- [ ] Add tests for relationship expansion bounds.
-- [ ] Add tests proving retrieval does not return uncontrolled full-schema context.
+- [x] Implement semantic vector retrieval from the local index.
+- [x] Implement keyword or metadata retrieval from the local index.
+- [x] Combine retrieval signals using explicit ranking logic.
+- [x] Make retrieval limits configurable.
+- [x] Implement table and column candidate ranking.
+- [x] Implement bounded foreign-key relationship expansion.
+- [x] Include nearby tables and columns only when justified by retrieved candidates.
+- [x] Include semantic descriptions in ranking and final context.
+- [x] Remove duplicate documents and redundant metadata.
+- [x] Produce a compact structured retrieval result.
+- [x] Include source fingerprint and retrieval diagnostics in the result.
+- [x] Handle an empty or unavailable index safely.
+- [x] Return a clear index-readiness error when runtime retrieval is impossible.
+- [x] Add retrieval latency measurements.
+- [x] Add tests for keyword retrieval.
+- [x] Add tests for vector retrieval.
+- [x] Add tests for signal merging and ranking.
+- [x] Add tests for relationship expansion bounds.
+- [x] Add tests proving retrieval does not return uncontrolled full-schema context.
 
 ### Exit Criteria
 
-- [ ] Relevant source schema context is returned for arbitrary supported questions.
-- [ ] Both vector and non-vector retrieval signals are used.
-- [ ] Relationship expansion is bounded and deterministic.
-- [ ] SQL generation receives compact relevant context rather than the full database.
+- [x] Relevant source schema context is returned for arbitrary supported questions.
+- [x] Both vector and non-vector retrieval signals are used.
+- [x] Relationship expansion is bounded and deterministic.
+- [x] SQL generation receives compact relevant context rather than the full database.
 
 ---
 
