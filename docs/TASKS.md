@@ -89,8 +89,8 @@ configuration handling, and initial health reporting.
 - [x] Define OpenRouter API key and model-role configuration.
 - [x] Define query timeout, returned-row, result-byte, and correction-retry limits.
 - [x] Define source schema scope configuration.
-- [ ] Add Docker Compose for the backend, frontend, and local pgvector database.
-- [ ] Do not add a source business database container, business migrations, or business seed data.
+- [x] Add Docker Compose for the backend, frontend, and local pgvector database.
+- [x] Do not add a source business database container, business migrations, or business seed data.
 - [ ] Add initial backend startup configuration validation.
 - [ ] Add an initial `/api/health` endpoint or health placeholder.
 - [ ] Document the external source database and local index database responsibilities.

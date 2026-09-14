@@ -1,0 +1,56 @@
+services:
+  index-db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${INDEX_DB_NAME:-schema_index}
+      POSTGRES_USER: ${INDEX_DB_USER:-index_user}
+      POSTGRES_PASSWORD: ${INDEX_DB_PASSWORD:?INDEX_DB_PASSWORD must be set in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - index_db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      SOURCE_DATABASE_URL: ${SOURCE_DATABASE_URL:-}
+      INDEX_DATABASE_URL: ${INDEX_DATABASE_URL:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      QUESTION_MODEL: ${QUESTION_MODEL:-}
+      SQL_MODEL: ${SQL_MODEL:-}
+      SQL_CORRECTION_MODEL: ${SQL_CORRECTION_MODEL:-}
+      ANSWER_MODEL: ${ANSWER_MODEL:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      SOURCE_SCHEMA_SCOPE: ${SOURCE_SCHEMA_SCOPE:-public}
+      MAX_CORRECTION_RETRIES: ${MAX_CORRECTION_RETRIES:-2}
+      MAX_RETURNED_ROWS: ${MAX_RETURNED_ROWS:-1000}
+      MAX_RESULT_BYTES: ${MAX_RESULT_BYTES:-5000000}
+      QUERY_TIMEOUT_SECONDS: ${QUERY_TIMEOUT_SECONDS:-30}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5173}
+    depends_on:
+      index-db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "5173:5173"
+
+volumes:
+  index_db_data:
