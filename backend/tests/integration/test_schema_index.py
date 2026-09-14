@@ -139,6 +139,85 @@ def test_index_repository_rejects_source_database_handle(
         services.dispose()
 
 
+def test_index_repository_searches_vector_and_keyword_signals_with_bounds(
+    postgres_fixture: PostgresIntegrationFixture,
+) -> None:
+    services, repository = _fresh_repository(postgres_fixture)
+    try:
+        snapshot = _snapshot(services)
+        result = _documents(snapshot)
+        _index_once(repository, result, "test-embedding")
+
+        vector_hits = repository.search_vector_documents(
+            result.source_key,
+            snapshot.fingerprint,
+            (1.0, 0.0, 0.0),
+            embedding_model="test-embedding",
+            minimum_similarity=0.0,
+            limit=3,
+        )
+        keyword_hits = repository.search_keyword_documents(
+            result.source_key,
+            snapshot.fingerprint,
+            "external_code",
+            limit=3,
+        )
+
+        assert 0 < len(vector_hits) <= 3
+        assert all(hit.signal == "vector" for hit in vector_hits)
+        assert 0 < len(keyword_hits) <= 3
+        assert keyword_hits[0].exact_identifier_match is True
+        assert any(hit.document.column_name == "external_code" for hit in keyword_hits)
+    finally:
+        services.dispose()
+
+
+def test_index_repository_reads_bounded_relation_and_relationship_documents(
+    postgres_fixture: PostgresIntegrationFixture,
+) -> None:
+    services, repository = _fresh_repository(postgres_fixture)
+    try:
+        snapshot = _snapshot(services)
+        result = _documents(snapshot)
+        _index_once(repository, result, "test-embedding")
+
+        relation_key = (("analytics", "events"),)
+        tables = repository.list_active_relation_documents(
+            result.source_key,
+            snapshot.fingerprint,
+            relation_key,
+            category="table",
+            limit=1,
+        )
+        outgoing = repository.list_active_relationship_documents(
+            result.source_key,
+            snapshot.fingerprint,
+            relation_key,
+            direction="outgoing",
+            limit=1,
+        )
+        incoming = repository.list_active_relationship_documents(
+            result.source_key,
+            snapshot.fingerprint,
+            (("analytics", "accounts"),),
+            direction="incoming",
+            limit=2,
+        )
+
+        assert len(tables) == 1
+        assert tables[0].relation_name == "events"
+        assert len(outgoing) == 1
+        assert outgoing[0].target_relation_name == "accounts"
+        assert outgoing[0].target_column_names == ("account_id",)
+        assert len(incoming) == 2
+        assert {document.relation_name for document in incoming} == {"account_profiles", "events"}
+        assert repository.active_document_count(result.source_key, snapshot.fingerprint) == len(
+            result.documents
+        )
+    finally:
+        services.dispose()
+
+
 def _fresh_repository(
     postgres_fixture: PostgresIntegrationFixture,
 ) -> tuple[DatabaseServices, IndexRepository]:

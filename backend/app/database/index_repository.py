@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import re
 import uuid
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import Any, cast
 
-from sqlalchemy import and_, delete, insert, select, text, update
+from sqlalchemy import and_, case, delete, func, insert, literal, or_, select, text, update
 
 from app.database.errors import DatabaseSeparationError, IndexServiceError
 from app.database.index_connection import IndexDatabase
@@ -20,6 +21,7 @@ from app.database.index_schema import (
     schema_embeddings,
     schema_metadata,
 )
+from app.models.retrieval import IndexSearchHit, RetrievedIndexDocument
 from app.models.schema_index import (
     DocumentCategory,
     IndexDocument,
@@ -27,6 +29,9 @@ from app.models.schema_index import (
     IndexRunStatus,
     StoredIndexDocument,
 )
+
+_MAX_RETRIEVAL_LIMIT = 256
+_KEYWORD_TOKEN_LIMIT = 32
 
 
 class IndexRepository:
@@ -326,6 +331,220 @@ class IndexRepository:
         except Exception as exc:
             raise IndexServiceError("The local schema index could not be read.") from exc
 
+    def search_vector_documents(
+        self,
+        source_key: str,
+        source_fingerprint: str,
+        query_vector: Sequence[float],
+        *,
+        embedding_model: str,
+        minimum_similarity: float,
+        limit: int,
+    ) -> tuple[IndexSearchHit, ...]:
+        """Return bounded vector matches from the active local index."""
+
+        _validate_retrieval_limit(limit)
+        if not query_vector:
+            raise IndexServiceError("The schema-index query vector must not be empty.")
+        if not 0.0 <= minimum_similarity <= 1.0:
+            raise IndexServiceError("The schema-index similarity threshold is invalid.")
+        distance = schema_embeddings.c.embedding.cosine_distance(list(query_vector))
+        similarity = (literal(1.0) - distance).label("vector_similarity")
+        statement = (
+            select(
+                *_document_columns(),
+                schema_embeddings.c.embedding_model,
+                schema_embeddings.c.embedding_dimension,
+                similarity,
+            )
+            .select_from(
+                schema_documents.join(
+                    schema_embeddings,
+                    and_(
+                        schema_documents.c.run_id == schema_embeddings.c.run_id,
+                        schema_documents.c.document_key == schema_embeddings.c.document_key,
+                    ),
+                )
+            )
+            .where(
+                and_(
+                    schema_documents.c.source_key == source_key,
+                    schema_documents.c.source_fingerprint == source_fingerprint,
+                    schema_documents.c.active.is_(True),
+                    schema_embeddings.c.embedding_model == embedding_model,
+                    distance <= literal(1.0 - minimum_similarity),
+                )
+            )
+            .order_by(
+                similarity.desc(),
+                schema_documents.c.category,
+                schema_documents.c.qualified_identifier,
+                schema_documents.c.document_key,
+            )
+            .limit(limit)
+        )
+        try:
+            with self.database.connect() as connection:
+                rows = connection.execute(statement).mappings()
+                return tuple(
+                    IndexSearchHit(
+                        document=_retrieved_document(row),
+                        signal="vector",
+                        rank=rank,
+                        raw_score=float(row["vector_similarity"]),
+                        vector_similarity=float(row["vector_similarity"]),
+                    )
+                    for rank, row in enumerate(rows, start=1)
+                )
+        except IndexServiceError:
+            raise
+        except Exception as exc:
+            raise IndexServiceError("The local schema vector search failed.") from exc
+
+    def search_keyword_documents(
+        self,
+        source_key: str,
+        source_fingerprint: str,
+        question: str,
+        *,
+        limit: int,
+    ) -> tuple[IndexSearchHit, ...]:
+        """Return bounded PostgreSQL full-text and identifier matches."""
+
+        _validate_retrieval_limit(limit)
+        if not question.strip():
+            return ()
+        search_text = func.concat(
+            schema_documents.c.content,
+            literal(" "),
+            schema_documents.c.qualified_identifier,
+        )
+        search_vector = func.to_tsvector("simple", search_text)
+        search_query = func.plainto_tsquery("simple", question)
+        terms = _keyword_terms(question)
+        exact_match = _exact_identifier_match(terms)
+        keyword_score = (
+            func.ts_rank_cd(search_vector, search_query)
+            + case((exact_match, literal(1.0)), else_=literal(0.0))
+        ).label("keyword_score")
+        statement = (
+            select(*_document_columns(), keyword_score, exact_match.label("exact_identifier_match"))
+            .where(
+                and_(
+                    schema_documents.c.source_key == source_key,
+                    schema_documents.c.source_fingerprint == source_fingerprint,
+                    schema_documents.c.active.is_(True),
+                    or_(search_vector.op("@@")(search_query), exact_match),
+                )
+            )
+            .order_by(
+                keyword_score.desc(),
+                schema_documents.c.category,
+                schema_documents.c.qualified_identifier,
+                schema_documents.c.document_key,
+            )
+            .limit(limit)
+        )
+        try:
+            with self.database.connect() as connection:
+                rows = connection.execute(statement).mappings()
+                return tuple(
+                    IndexSearchHit(
+                        document=_retrieved_document(row),
+                        signal="keyword",
+                        rank=rank,
+                        raw_score=float(row["keyword_score"]),
+                        keyword_score=float(row["keyword_score"]),
+                        exact_identifier_match=bool(row["exact_identifier_match"]),
+                    )
+                    for rank, row in enumerate(rows, start=1)
+                )
+        except IndexServiceError:
+            raise
+        except Exception as exc:
+            raise IndexServiceError("The local schema keyword search failed.") from exc
+
+    def list_active_relation_documents(
+        self,
+        source_key: str,
+        source_fingerprint: str,
+        relation_keys: Sequence[tuple[str, str]],
+        *,
+        category: str,
+        limit: int,
+    ) -> tuple[RetrievedIndexDocument, ...]:
+        """Read bounded active documents for selected source relations."""
+
+        _validate_retrieval_limit(limit)
+        if not relation_keys:
+            return ()
+        statement = (
+            _active_document_statement(source_key, source_fingerprint)
+            .where(
+                and_(
+                    schema_documents.c.category == category,
+                    _relation_filter(relation_keys),
+                )
+            )
+            .order_by(schema_documents.c.qualified_identifier, schema_documents.c.document_key)
+            .limit(limit)
+        )
+        return self._read_retrieved_documents(statement, "relation documents")
+
+    def list_active_relationship_documents(
+        self,
+        source_key: str,
+        source_fingerprint: str,
+        relation_keys: Sequence[tuple[str, str]],
+        *,
+        direction: str,
+        limit: int,
+    ) -> tuple[RetrievedIndexDocument, ...]:
+        """Read bounded foreign-key documents entering or leaving selected relations."""
+
+        _validate_retrieval_limit(limit)
+        if not relation_keys:
+            return ()
+        if direction == "outgoing":
+            relation_filter = _relation_filter(relation_keys)
+        elif direction == "incoming":
+            relation_filter = _target_relation_filter(relation_keys)
+        else:
+            raise IndexServiceError("The relationship direction is invalid.")
+        statement = (
+            _active_document_statement(source_key, source_fingerprint)
+            .where(and_(schema_documents.c.category == "relationship", relation_filter))
+            .order_by(schema_documents.c.qualified_identifier, schema_documents.c.document_key)
+            .limit(limit)
+        )
+        return self._read_retrieved_documents(statement, "relationship documents")
+
+    def active_document_count(self, source_key: str, source_fingerprint: str) -> int:
+        """Count active documents without loading the index into application memory."""
+
+        statement = select(func.count()).select_from(
+            _active_document_statement(source_key, source_fingerprint).subquery()
+        )
+        try:
+            with self.database.connect() as connection:
+                return int(connection.execute(statement).scalar_one())
+        except IndexServiceError:
+            raise
+        except Exception as exc:
+            raise IndexServiceError("The local schema index count could not be read.") from exc
+
+    def _read_retrieved_documents(
+        self, statement: Any, description: str
+    ) -> tuple[RetrievedIndexDocument, ...]:
+        try:
+            with self.database.connect() as connection:
+                rows = connection.execute(statement).mappings()
+                return tuple(_retrieved_document(row) for row in rows)
+        except IndexServiceError:
+            raise
+        except Exception as exc:
+            raise IndexServiceError(f"The local schema {description} could not be read.") from exc
+
     def latest_run(self, source_key: str, *, status: str | None = None) -> IndexRunRecord | None:
         """Return the latest run for a source namespace."""
 
@@ -403,3 +622,109 @@ def _stored_document(row: Any) -> StoredIndexDocument:
         document_version=str(row["document_version"]),
         content_digest=str(row["content_digest"]),
     )
+
+
+def _document_columns() -> tuple[Any, ...]:
+    return (
+        schema_documents.c.document_key,
+        schema_documents.c.category,
+        schema_documents.c.source_key,
+        schema_documents.c.schema_name,
+        schema_documents.c.relation_name,
+        schema_documents.c.column_name,
+        schema_documents.c.target_schema_name,
+        schema_documents.c.target_relation_name,
+        schema_documents.c.target_column_names,
+        schema_documents.c.qualified_identifier,
+        schema_documents.c.content,
+        schema_documents.c.metadata,
+        schema_documents.c.source_fingerprint,
+        schema_documents.c.semantic_metadata_digest,
+        schema_documents.c.document_version,
+        schema_documents.c.content_digest,
+    )
+
+
+def _active_document_statement(source_key: str, source_fingerprint: str) -> Any:
+    return select(*_document_columns()).where(
+        and_(
+            schema_documents.c.source_key == source_key,
+            schema_documents.c.source_fingerprint == source_fingerprint,
+            schema_documents.c.active.is_(True),
+        )
+    )
+
+
+def _relation_filter(relation_keys: Sequence[tuple[str, str]]) -> Any:
+    return or_(
+        *(
+            and_(
+                schema_documents.c.schema_name == schema_name,
+                schema_documents.c.relation_name == relation_name,
+            )
+            for schema_name, relation_name in relation_keys
+        )
+    )
+
+
+def _target_relation_filter(relation_keys: Sequence[tuple[str, str]]) -> Any:
+    return or_(
+        *(
+            and_(
+                schema_documents.c.target_schema_name == schema_name,
+                schema_documents.c.target_relation_name == relation_name,
+            )
+            for schema_name, relation_name in relation_keys
+        )
+    )
+
+
+def _retrieved_document(row: Any) -> RetrievedIndexDocument:
+    return RetrievedIndexDocument(
+        document_key=str(row["document_key"]),
+        category=cast(Any, str(row["category"])),
+        source_key=str(row["source_key"]),
+        schema_name=str(row["schema_name"]),
+        relation_name=cast(str | None, row["relation_name"]),
+        column_name=cast(str | None, row["column_name"]),
+        target_schema_name=cast(str | None, row["target_schema_name"]),
+        target_relation_name=cast(str | None, row["target_relation_name"]),
+        target_column_names=tuple(str(value) for value in (row["target_column_names"] or [])),
+        qualified_identifier=str(row["qualified_identifier"]),
+        content=str(row["content"]),
+        metadata=cast(dict[str, Any], row["metadata"]),
+        source_fingerprint=str(row["source_fingerprint"]),
+        semantic_metadata_digest=str(row["semantic_metadata_digest"]),
+        document_version=str(row["document_version"]),
+        content_digest=str(row["content_digest"]),
+    )
+
+
+def _keyword_terms(question: str) -> tuple[str, ...]:
+    terms: list[str] = []
+    for raw_term in re.findall(r"[\w]+", question.casefold()):
+        if raw_term and raw_term not in terms:
+            terms.append(raw_term)
+        if len(terms) == _KEYWORD_TOKEN_LIMIT:
+            break
+    return tuple(terms)
+
+
+def _exact_identifier_match(terms: Sequence[str]) -> Any:
+    if not terms:
+        return literal(False)
+    return or_(
+        *(
+            func.lower(column).in_(terms)
+            for column in (
+                schema_documents.c.schema_name,
+                schema_documents.c.relation_name,
+                schema_documents.c.column_name,
+            )
+        )
+    )
+
+
+def _validate_retrieval_limit(limit: int) -> None:
+    if not 0 < limit <= _MAX_RETRIEVAL_LIMIT:
+        raise IndexServiceError("The schema-index retrieval limit is outside the safe bound.")
