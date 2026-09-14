@@ -91,8 +91,8 @@ configuration handling, and initial health reporting.
 - [x] Define source schema scope configuration.
 - [x] Add Docker Compose for the backend, frontend, and local pgvector database.
 - [x] Do not add a source business database container, business migrations, or business seed data.
-- [ ] Add initial backend startup configuration validation.
-- [ ] Add an initial `/api/health` endpoint or health placeholder.
+- [x] Add initial backend startup configuration validation.
+- [x] Add an initial `/api/health` endpoint or health placeholder.
 - [ ] Document the external source database and local index database responsibilities.
 - [ ] Document local startup commands.
 
