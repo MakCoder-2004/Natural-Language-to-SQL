@@ -130,15 +130,15 @@ the configured schema scope, and generate a stable schema fingerprint.
 - [x] Integrate LangChain's PostgreSQL SQL abstraction where appropriate.
 - [x] Configure source connection pooling and cleanup.
 - [x] Configure connection and query timeouts.
-- [ ] Implement configurable source schema scope filtering.
-- [ ] Exclude unintended PostgreSQL system schemas from the source scope.
-- [ ] Introspect source schemas and namespaces.
-- [ ] Introspect tables and views in the approved source scope.
-- [ ] Introspect columns, data types, nullability, defaults, and comments.
-- [ ] Introspect primary keys and unique constraints.
-- [ ] Introspect foreign keys and relationship metadata.
-- [ ] Introspect relevant indexes and ordering information.
-- [ ] Generate a stable source schema fingerprint.
+- [x] Implement configurable source schema scope filtering.
+- [x] Exclude unintended PostgreSQL system schemas from the source scope.
+- [x] Introspect source schemas and namespaces.
+- [x] Introspect tables and views in the approved source scope.
+- [x] Introspect columns, data types, nullability, defaults, and comments.
+- [x] Introspect primary keys and unique constraints.
+- [x] Introspect foreign keys and relationship metadata.
+- [x] Introspect relevant indexes and ordering information.
+- [x] Generate a stable source schema fingerprint.
 - [ ] Verify the source connection is used for both introspection and query execution.
 - [ ] Document the required read-only source database role.
 - [ ] Verify that the source role cannot write or alter schema objects.
