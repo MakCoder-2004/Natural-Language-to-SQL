@@ -7,9 +7,9 @@ name = "safe-schema-sql-backend"
 version = "0.1.0"
 description = "Backend foundation for a safe schema-aware natural-language-to-SQL platform"
 requires-python = ">=3.12,<3.13"
+
 dependencies = [
     "fastapi>=0.115,<1",
-    "httpx>=0.28,<1",
     "langchain-community>=0.3,<0.4",
     "langchain-core>=0.3,<0.4",
     "langchain-openai>=0.3,<0.4",
@@ -22,8 +22,12 @@ dependencies = [
     "uvicorn[standard]>=0.34,<1",
 ]
 
+[project.scripts]
+index-schema = "app.cli.index_schema:main"
+
 [project.optional-dependencies]
 dev = [
+    "httpx>=0.28,<1",
     "mypy>=1.14,<2",
     "pytest>=8.3,<9",
     "pytest-asyncio>=0.25,<1",

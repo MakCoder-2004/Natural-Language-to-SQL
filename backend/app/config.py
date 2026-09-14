@@ -85,6 +85,7 @@ class Settings(BaseSettings):
     query_timeout_seconds: int = 30
     embedding_batch_size: int = DEFAULT_EMBEDDING_BATCH_SIZE
     embedding_request_timeout_seconds: int = DEFAULT_EMBEDDING_REQUEST_TIMEOUT_SECONDS
+    strict_semantic_metadata: bool = False
     log_level: str = "INFO"
     frontend_origins: str = "http://localhost:5173"
 

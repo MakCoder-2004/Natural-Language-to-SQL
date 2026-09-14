@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import Any, cast
 
@@ -48,6 +49,30 @@ class IndexRepository:
             raise
         except Exception as exc:
             raise IndexServiceError("The local schema index could not be initialized.") from exc
+
+    @contextmanager
+    def run_lock(self, source_key: str) -> Iterator[None]:
+        """Serialize indexing runs for one source namespace."""
+
+        try:
+            with self.database.connect() as connection:
+                connection.execute(
+                    text("SELECT pg_advisory_lock(hashtextextended(:source_key, :lock_seed))"),
+                    {"source_key": source_key, "lock_seed": 0},
+                )
+                try:
+                    yield
+                finally:
+                    connection.execute(
+                        text(
+                            "SELECT pg_advisory_unlock(hashtextextended(:source_key, :lock_seed))"
+                        ),
+                        {"source_key": source_key, "lock_seed": 0},
+                    )
+        except IndexServiceError:
+            raise
+        except Exception as exc:
+            raise IndexServiceError("The local schema index lock could not be acquired.") from exc
 
     def start_run(
         self,

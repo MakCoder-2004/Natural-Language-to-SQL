@@ -189,14 +189,14 @@ Source metadata + semantic metadata
 - [x] Enable the pgvector extension in the local index database.
 - [x] Define local index tables for documents, embeddings, metadata, and index runs.
 - [x] Keep local index schema initialization separate from source business schema management.
-- [ ] Implement embedding generation through the configured embedding model.
-- [ ] Implement idempotent document upsert behavior.
-- [ ] Store source fingerprints and indexing timestamps.
-- [ ] Store embedding model identifiers and document versions.
-- [ ] Implement a repeatable indexing command or script.
-- [ ] Implement index refresh behavior for source schema changes.
+- [x] Implement embedding generation through the configured embedding model.
+- [x] Implement idempotent document upsert behavior.
+- [x] Store source fingerprints and indexing timestamps.
+- [x] Store embedding model identifiers and document versions.
+- [x] Implement a repeatable indexing command or script.
+- [x] Implement index refresh behavior for source schema changes.
 - [ ] Implement index readiness and freshness checks.
-- [ ] Report indexing failures without exposing secrets.
+- [x] Report indexing failures without exposing secrets.
 - [ ] Add tests for document generation and semantic metadata merging.
 - [ ] Add tests for repeat indexing and stale-document replacement.
 - [ ] Add integration tests for pgvector writes and reads.
