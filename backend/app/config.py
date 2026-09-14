@@ -9,6 +9,7 @@ from typing import Final
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
 
 DEFAULT_SOURCE_SCHEMA_SCOPE: Final[str] = "public"
 MAX_ALLOWED_CORRECTION_RETRIES: Final[int] = 2
@@ -37,7 +38,7 @@ class Settings(BaseSettings):
     """Backend-owned settings loaded from environment variables or `.env`."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=("../.env", ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -110,9 +111,9 @@ class Settings(BaseSettings):
         self._add_required_secret_issue(issues, "SOURCE_DATABASE_URL", self.source_database_url)
         self._add_required_secret_issue(issues, "INDEX_DATABASE_URL", self.index_database_url)
 
-        if self.source_database_url is not None:
+        if self.source_database_url is not None and self._has_secret(self.source_database_url):
             self._add_postgres_url_issue(issues, "SOURCE_DATABASE_URL", self.source_database_url)
-        if self.index_database_url is not None:
+        if self.index_database_url is not None and self._has_secret(self.index_database_url):
             self._add_postgres_url_issue(issues, "INDEX_DATABASE_URL", self.index_database_url)
 
         if self.source_database_url and self.index_database_url:
@@ -201,7 +202,7 @@ class Settings(BaseSettings):
     ) -> None:
         try:
             parsed_url = make_url(value.get_secret_value())
-        except (TypeError, ValueError):
+        except (ArgumentError, TypeError, ValueError):
             parsed_url = None
 
         if parsed_url is None or not parsed_url.drivername.startswith("postgresql"):

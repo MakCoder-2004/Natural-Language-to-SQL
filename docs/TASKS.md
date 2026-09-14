@@ -93,15 +93,15 @@ configuration handling, and initial health reporting.
 - [x] Do not add a source business database container, business migrations, or business seed data.
 - [x] Add initial backend startup configuration validation.
 - [x] Add an initial `/api/health` endpoint or health placeholder.
-- [ ] Document the external source database and local index database responsibilities.
-- [ ] Document local startup commands.
+- [x] Document the external source database and local index database responsibilities.
+- [x] Document local startup commands.
 
 ### Exit Criteria
 
-- [ ] Local services start successfully with documented commands.
-- [ ] Missing required configuration produces safe, actionable errors.
-- [ ] No application code assumes tables such as `customers`, `orders`, or `products`.
-- [ ] No secrets are committed.
+- [x] Local services start successfully with documented commands.
+- [x] Missing required configuration produces safe, actionable errors.
+- [x] No application code assumes tables such as `customers`, `orders`, or `products`.
+- [x] No secrets are committed.
 
 ---
 

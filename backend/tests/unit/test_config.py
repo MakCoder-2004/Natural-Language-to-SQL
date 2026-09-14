@@ -52,6 +52,14 @@ def test_missing_values_are_reported_without_secret_values() -> None:
     assert "secret" not in message.lower()
 
 
+def test_empty_secret_values_are_treated_as_missing() -> None:
+    settings = make_settings(source_database_url="", index_database_url="")
+
+    issues = settings.configuration_issues()
+
+    assert {issue.code for issue in issues if issue.field.endswith("DATABASE_URL")} == {"missing"}
+
+
 def test_runtime_validation_can_require_the_openrouter_key() -> None:
     settings = make_settings(openrouter_api_key=None)
 
