@@ -12,9 +12,16 @@ class FakeEmbedder:
     def __init__(self, vectors: object) -> None:
         self.vectors = vectors
         self.texts: list[str] | None = None
+        self.query_text: str | None = None
 
     def embed_documents(self, texts: list[str]) -> object:
         self.texts = texts
+        return self.vectors
+
+    def embed_query(self, text: str) -> object:
+        self.query_text = text
+        if isinstance(self.vectors, list) and self.vectors:
+            return self.vectors[0]
         return self.vectors
 
 
@@ -27,6 +34,16 @@ def test_langchain_embedding_provider_batches_texts_and_validates_vectors() -> N
     assert vectors == ((1.0, 0.0), (0.0, 1.0))
     assert embedder.texts == ["first", "second"]
     assert provider.model_id == "test-embedding"
+
+
+def test_langchain_embedding_provider_embeds_and_validates_one_query() -> None:
+    embedder = FakeEmbedder([[1, 0]])
+    provider = LangChainEmbeddingProvider(embedder, "test-embedding")
+
+    vector = provider.embed_query("find accounts")
+
+    assert vector == (1.0, 0.0)
+    assert embedder.query_text == "find accounts"
 
 
 @pytest.mark.parametrize(
@@ -49,6 +66,9 @@ def test_langchain_embedding_provider_rejects_invalid_vectors(vectors: object) -
 def test_langchain_embedding_provider_translates_provider_failures() -> None:
     class FailingEmbedder:
         def embed_documents(self, _texts: list[str]) -> object:
+            raise RuntimeError("provider failure")
+
+        def embed_query(self, _text: str) -> object:
             raise RuntimeError("provider failure")
 
     provider = LangChainEmbeddingProvider(FailingEmbedder(), "test-embedding")

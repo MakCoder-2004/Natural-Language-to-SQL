@@ -27,11 +27,17 @@ class FakeEmbeddingProvider:
         self.batches.append(batch)
         return tuple((float(len(text)), 1.0, 2.0) for text in batch)
 
+    def embed_query(self, text: str) -> tuple[float, ...]:
+        return (float(len(text)), 1.0, 2.0)
+
 
 class FailingEmbeddingProvider:
     model_id = "test-embedding"
 
     def embed_documents(self, _texts: Sequence[str]) -> tuple[tuple[float, ...], ...]:
+        raise EmbeddingServiceError("test embedding failure")
+
+    def embed_query(self, _text: str) -> tuple[float, ...]:
         raise EmbeddingServiceError("test embedding failure")
 
 

@@ -55,3 +55,19 @@ class EmbeddingServiceError(IndexServiceError):
     """Raised when an embedding provider cannot produce valid vectors."""
 
     error_code = "embedding_error"
+
+
+class IndexReadinessError(IndexServiceError):
+    """Raised when the local schema index cannot safely serve retrieval."""
+
+    error_code = "index_not_ready"
+
+    def __init__(self, message: str, *, reason: str) -> None:
+        super().__init__(message)
+        self.reason = reason
+
+
+class NoRelevantSchemaError(IndexServiceError):
+    """Raised when retrieval cannot establish credible schema context."""
+
+    error_code = "no_relevant_schema"

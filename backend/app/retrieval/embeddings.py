@@ -13,12 +13,14 @@ from app.database.errors import EmbeddingServiceError
 
 
 class EmbeddingProvider(Protocol):
-    """Minimal provider contract required by the indexing service."""
+    """Minimal provider contract required by indexing and retrieval."""
 
     @property
     def model_id(self) -> str: ...
 
     def embed_documents(self, texts: Sequence[str]) -> tuple[tuple[float, ...], ...]: ...
+
+    def embed_query(self, text: str) -> tuple[float, ...]: ...
 
 
 class LangChainEmbeddingProvider:
@@ -40,6 +42,17 @@ class LangChainEmbeddingProvider:
         except Exception as exc:
             raise EmbeddingServiceError("The embedding service request failed.") from exc
         return _validate_vectors(raw_vectors, len(texts))
+
+    def embed_query(self, text: str) -> tuple[float, ...]:
+        """Embed one question with the same model used for indexing."""
+
+        if not text.strip():
+            raise EmbeddingServiceError("The query to embed must not be empty.")
+        try:
+            raw_vector = self._embedder.embed_query(text)
+        except Exception as exc:
+            raise EmbeddingServiceError("The embedding service request failed.") from exc
+        return _validate_vectors([raw_vector], 1)[0]
 
 
 def create_embedding_provider(settings: Settings) -> LangChainEmbeddingProvider:
