@@ -8,6 +8,7 @@ from app.config import Settings
 from app.database.errors import EmbeddingServiceError
 from app.database.index_repository import IndexRepository
 from app.database.services import create_database_services
+from app.services.health import build_health_response
 from app.services.indexing_service import IndexingService
 
 from tests.fixtures.postgres import PostgresIntegrationFixture, fixture_settings
@@ -80,6 +81,37 @@ def test_failed_embedding_run_preserves_previous_active_index(
         assert latest is not None
         assert latest.status == "failed"
         assert latest.error_code == "embedding_error"
+    finally:
+        services.dispose()
+
+
+def test_health_reports_ready_and_stale_index_states(
+    postgres_fixture: PostgresIntegrationFixture,
+    tmp_path: Path,
+) -> None:
+    settings = _test_settings(postgres_fixture, tmp_path)
+    services = create_database_services(settings)
+    try:
+        successful = IndexingService(
+            settings, services, embedding_provider=FakeEmbeddingProvider()
+        ).run()
+        ready = build_health_response(settings, services)
+
+        metadata_file = tmp_path / "semantic.yaml"
+        metadata_file.write_text(
+            "metadata_version: 1\nschemas:\n  - name: analytics\n    description: changed\n",
+            encoding="utf-8",
+        )
+        stale_settings = settings.model_copy(update={"semantic_metadata_path": str(metadata_file)})
+        stale = build_health_response(stale_settings, services)
+
+        assert successful.status == "succeeded"
+        assert ready.status == "ready"
+        assert ready.schema_index.status == "ready"
+        assert ready.schema_index.document_count == successful.document_count
+        assert stale.status == "degraded"
+        assert stale.schema_index.status == "stale"
+        assert stale.schema_index.freshness_checked is True
     finally:
         services.dispose()
 

@@ -50,7 +50,7 @@ class SchemaDocumentBuilder:
 
         semantic_schemas = {schema.name: schema for schema in catalog.document.schemas}
         documents: list[IndexDocument] = []
-        source_key = _source_key(snapshot)
+        source_key = source_index_key(snapshot)
         for schema in sorted(snapshot.schemas, key=lambda item: item.name):
             semantic_schema = semantic_schemas.get(schema.name)
             semantic_relations = (
@@ -412,7 +412,9 @@ class SchemaDocumentBuilder:
         )
 
 
-def _source_key(snapshot: SourceSchemaSnapshot) -> str:
+def source_index_key(snapshot: SourceSchemaSnapshot) -> str:
+    """Return the non-secret namespace used to isolate one source index."""
+
     scope = ",".join(sorted(set(snapshot.scope)))
     return f"postgres:{snapshot.identity.database_name}|scope:{scope}"
 

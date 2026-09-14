@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import Literal
 
 from sqlalchemy import text
 
@@ -13,6 +14,7 @@ from app.database.services import DatabaseServices
 from app.database.source_connection import SourceDatabase
 from app.database.source_permissions import verify_source_read_only_access
 from app.models.health import HealthComponent, HealthResponse
+from app.services.index_status import build_schema_index_health
 
 
 def build_health_response(
@@ -45,8 +47,17 @@ def build_health_response(
         missing_detail="OpenRouter credentials are not configured.",
     )
 
+    schema_index = build_schema_index_health(
+        settings,
+        database_services,
+        source_component=source_database,
+        index_component=index_database,
+    )
+    overall_status: Literal["ready", "degraded"] = (
+        "ready" if schema_index.status == "ready" else "degraded"
+    )
     return HealthResponse(
-        status="degraded",
+        status=overall_status,
         service=HealthComponent(
             status="ok",
             configured=True,
@@ -54,11 +65,7 @@ def build_health_response(
         ),
         source_database=source_database,
         index_database=index_database,
-        schema_index=HealthComponent(
-            status="not_initialized",
-            configured=index_database.configured,
-            detail="Schema-index initialization belongs to a later milestone.",
-        ),
+        schema_index=schema_index,
         openrouter=openrouter,
         configuration_errors=[issue.message for issue in issues],
     )

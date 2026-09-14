@@ -195,7 +195,7 @@ Source metadata + semantic metadata
 - [x] Store embedding model identifiers and document versions.
 - [x] Implement a repeatable indexing command or script.
 - [x] Implement index refresh behavior for source schema changes.
-- [ ] Implement index readiness and freshness checks.
+- [x] Implement index readiness and freshness checks.
 - [x] Report indexing failures without exposing secrets.
 - [ ] Add tests for document generation and semantic metadata merging.
 - [ ] Add tests for repeat indexing and stale-document replacement.

@@ -1,11 +1,13 @@
 """Public health response models."""
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
 HealthStatus = Literal[
     "ok",
+    "ready",
     "configured",
     "not_configured",
     "not_checked",
@@ -14,6 +16,8 @@ HealthStatus = Literal[
     "reachable",
     "unavailable",
     "permission_denied",
+    "stale",
+    "failed",
 ]
 
 
@@ -27,6 +31,12 @@ class HealthComponent(BaseModel):
     detail: str
     reachable: bool | None = None
     read_only_verified: bool | None = None
+    freshness_checked: bool | None = None
+    source_fingerprint: str | None = None
+    semantic_metadata_digest: str | None = None
+    indexed_at: datetime | None = None
+    document_count: int | None = None
+    embedding_model: str | None = None
 
 
 class HealthResponse(BaseModel):
