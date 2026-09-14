@@ -10,7 +10,8 @@ from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from pydantic import ConfigDict, Field
 
-from app.models.retrieval import IndexSearchHit
+from app.database.errors import EmbeddingServiceError
+from app.models.retrieval import IndexSearchHit, RetrievedIndexDocument
 
 
 class VectorSchemaRetriever(BaseRetriever):
@@ -24,6 +25,7 @@ class VectorSchemaRetriever(BaseRetriever):
     source_key: str
     source_fingerprint: str
     embedding_model: str
+    embedding_dimension: int
     limit: int
     minimum_similarity: float
 
@@ -35,6 +37,8 @@ class VectorSchemaRetriever(BaseRetriever):
     ) -> list[Document]:
         del run_manager
         query_vector = self.embedding_provider.embed_query(query)
+        if len(query_vector) != self.embedding_dimension:
+            raise EmbeddingServiceError("The query embedding dimension does not match the index.")
         hits = self.repository.search_vector_documents(
             self.source_key,
             self.source_fingerprint,
@@ -91,7 +95,25 @@ def create_ensemble_retriever(
 
 
 def _document_from_hit(hit: IndexSearchHit) -> Document:
-    document = hit.document
+    return document_from_indexed_document(
+        hit.document,
+        {
+            "retrieval_signal": hit.signal,
+            "retrieval_rank": hit.rank,
+            "retrieval_raw_score": hit.raw_score,
+            "vector_similarity": hit.vector_similarity,
+            "keyword_score": hit.keyword_score,
+            "exact_identifier_match": hit.exact_identifier_match,
+        },
+    )
+
+
+def document_from_indexed_document(
+    document: RetrievedIndexDocument,
+    extra_metadata: dict[str, Any] | None = None,
+) -> Document:
+    """Convert an indexed domain document to a LangChain document."""
+
     metadata: dict[str, Any] = {
         **document.metadata,
         "document_key": document.document_key,
@@ -107,13 +129,9 @@ def _document_from_hit(hit: IndexSearchHit) -> Document:
         "source_fingerprint": document.source_fingerprint,
         "document_version": document.document_version,
         "content_digest": document.content_digest,
-        "retrieval_signal": hit.signal,
-        "retrieval_rank": hit.rank,
-        "retrieval_raw_score": hit.raw_score,
-        "vector_similarity": hit.vector_similarity,
-        "keyword_score": hit.keyword_score,
-        "exact_identifier_match": hit.exact_identifier_match,
     }
+    if extra_metadata:
+        metadata.update(extra_metadata)
     return Document(
         id=document.document_key,
         page_content=document.content,

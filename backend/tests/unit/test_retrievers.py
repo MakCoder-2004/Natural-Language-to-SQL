@@ -69,6 +69,7 @@ def test_langchain_retrievers_return_documents_and_preserve_signal_metadata() ->
         source_key="source",
         source_fingerprint="sha256:test",
         embedding_model="test-embedding",
+        embedding_dimension=2,
         limit=2,
         minimum_similarity=0.2,
     )
@@ -101,6 +102,7 @@ def test_langchain_ensemble_retriever_fuses_by_document_key() -> None:
         source_key="source",
         source_fingerprint="sha256:test",
         embedding_model="test-embedding",
+        embedding_dimension=2,
         limit=2,
         minimum_similarity=0.2,
     )

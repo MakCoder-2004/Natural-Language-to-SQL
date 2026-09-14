@@ -10,6 +10,7 @@ from app.database.index_repository import IndexRepository
 from app.database.services import create_database_services
 from app.services.health import build_health_response
 from app.services.indexing_service import IndexingService
+from app.services.retrieval import HybridSchemaRetrievalService
 
 from tests.fixtures.postgres import PostgresIntegrationFixture, fixture_settings
 
@@ -122,15 +123,58 @@ def test_health_reports_ready_and_stale_index_states(
         services.dispose()
 
 
+def test_hybrid_schema_retrieval_returns_bounded_context_and_relationships(
+    postgres_fixture: PostgresIntegrationFixture,
+    tmp_path: Path,
+) -> None:
+    settings = _test_settings(
+        postgres_fixture,
+        tmp_path,
+        retrieval_max_selected_tables=1,
+        retrieval_max_columns_per_table=2,
+        retrieval_max_expanded_tables=1,
+    )
+    services = create_database_services(settings)
+    try:
+        provider = FakeEmbeddingProvider()
+        run = IndexingService(settings, services, embedding_provider=provider).run()
+        result = HybridSchemaRetrievalService(
+            settings,
+            services,
+            embedding_provider=provider,
+        ).retrieve("events")
+
+        assert run.status == "succeeded"
+        assert result.index_fingerprint == run.source_fingerprint
+        assert len(result.tables) <= 2
+        assert len(result.columns) <= 4
+        assert len(result.context_text) <= settings.retrieval_max_context_characters
+        assert result.diagnostics.vector_candidate_count > 0
+        assert result.diagnostics.keyword_candidate_count > 0
+        assert result.diagnostics.stage_latency_ms["total"] >= 0
+        assert result.relationships
+        assert all(relationship.source_columns for relationship in result.relationships)
+        assert all(relationship.target_columns for relationship in result.relationships)
+        assert '"internal"' not in result.context_text
+    finally:
+        services.dispose()
+
+
 def _test_settings(
     fixture: PostgresIntegrationFixture,
     tmp_path: Path,
     *,
     embedding_batch_size: int = 64,
+    retrieval_max_selected_tables: int = 8,
+    retrieval_max_columns_per_table: int = 12,
+    retrieval_max_expanded_tables: int = 4,
 ) -> Settings:
     return fixture_settings(fixture).model_copy(
         update={
             "semantic_metadata_path": str(tmp_path / "missing-metadata"),
             "embedding_batch_size": embedding_batch_size,
+            "retrieval_max_selected_tables": retrieval_max_selected_tables,
+            "retrieval_max_columns_per_table": retrieval_max_columns_per_table,
+            "retrieval_max_expanded_tables": retrieval_max_expanded_tables,
         }
     )

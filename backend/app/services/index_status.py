@@ -5,11 +5,16 @@ from __future__ import annotations
 from typing import Literal
 
 from app.config import Settings
-from app.database.errors import DatabaseServiceError, IndexServiceError
+from app.database.errors import (
+    DatabaseServiceError,
+    IndexReadinessError,
+    IndexServiceError,
+)
 from app.database.index_repository import IndexRepository
 from app.database.services import DatabaseServices
 from app.database.source_introspection import SourceIntrospector
 from app.models.health import HealthComponent
+from app.models.retrieval import IndexReadiness
 from app.models.schema_index import IndexRunRecord
 from app.retrieval.schema_documents import source_index_key
 from app.retrieval.semantic_metadata import load_semantic_metadata
@@ -127,6 +132,96 @@ def build_schema_index_health(
             reachable=True,
             freshness_checked=False,
         )
+
+
+def require_ready_schema_index(
+    settings: Settings, database_services: DatabaseServices | None
+) -> IndexReadiness:
+    """Return the promoted index identity or fail closed before retrieval."""
+
+    if database_services is None or database_services.source is None:
+        raise IndexReadinessError(
+            "The source database is not available for index readiness checks.",
+            reason="index_unavailable",
+        )
+    if database_services.index is None:
+        raise IndexReadinessError(
+            "The schema index has not been initialized.",
+            reason="index_not_initialized",
+        )
+
+    try:
+        snapshot = SourceIntrospector(database_services.source).introspect()
+        source_key = source_index_key(snapshot)
+        repository = IndexRepository(database_services.index)
+        latest_run = repository.latest_run(source_key)
+        if latest_run is None:
+            raise IndexReadinessError(
+                "The schema index has not been initialized.",
+                reason="index_not_initialized",
+            )
+        if latest_run.status != "succeeded":
+            raise IndexReadinessError(
+                "The latest schema index refresh did not complete successfully.",
+                reason="index_failed",
+            )
+
+        semantic_digest = load_semantic_metadata(settings.semantic_metadata_path).digest
+        if (
+            latest_run.source_fingerprint != snapshot.fingerprint
+            or latest_run.semantic_metadata_digest != semantic_digest
+        ):
+            raise IndexReadinessError(
+                "The schema index is stale and must be refreshed.",
+                reason="index_stale",
+            )
+        if (
+            latest_run.embedding_dimension is None
+            or latest_run.document_count <= 0
+            or latest_run.embedding_count != latest_run.document_count
+        ):
+            raise IndexReadinessError(
+                "The schema index does not contain a complete searchable run.",
+                reason="index_corrupt",
+            )
+
+        active_count = repository.active_document_count(source_key, snapshot.fingerprint)
+        active_embedding_count = repository.active_embedding_count(
+            source_key,
+            snapshot.fingerprint,
+            embedding_model=latest_run.embedding_model,
+        )
+        if (
+            active_count != latest_run.document_count
+            or active_embedding_count != latest_run.embedding_count
+        ):
+            raise IndexReadinessError(
+                "The active schema index is incomplete.",
+                reason="index_corrupt",
+            )
+        return IndexReadiness(
+            status="ready",
+            source_key=source_key,
+            source_fingerprint=snapshot.fingerprint,
+            semantic_metadata_digest=semantic_digest,
+            run_id=latest_run.run_id,
+            embedding_model=latest_run.embedding_model,
+            embedding_dimension=latest_run.embedding_dimension,
+            document_count=active_count,
+            indexed_at=latest_run.finished_at,
+        )
+    except IndexReadinessError:
+        raise
+    except DatabaseServiceError as exc:
+        raise IndexReadinessError(
+            "The schema index readiness check could not reach its database dependencies.",
+            reason="index_unavailable",
+        ) from exc
+    except IndexServiceError as exc:
+        raise IndexReadinessError(
+            "The schema index readiness check failed safely.",
+            reason="index_corrupt",
+        ) from exc
 
 
 def _run_component(

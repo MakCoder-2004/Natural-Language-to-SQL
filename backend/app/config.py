@@ -173,6 +173,35 @@ class Settings(BaseSettings):
             raise ValueError("must be greater than zero")
         return value
 
+    @field_validator(
+        "retrieval_vector_candidate_limit",
+        "retrieval_keyword_candidate_limit",
+        "retrieval_max_selected_tables",
+        "retrieval_max_columns_per_table",
+        "retrieval_max_relationships",
+        "retrieval_max_expanded_tables",
+        "retrieval_max_context_documents",
+    )
+    @classmethod
+    def validate_retrieval_bound(cls, value: int) -> int:
+        if value > 256:
+            raise ValueError("must not exceed 256")
+        return value
+
+    @field_validator("retrieval_max_relationship_hops")
+    @classmethod
+    def validate_relationship_hops(cls, value: int) -> int:
+        if value > 1:
+            raise ValueError("must not exceed one hop")
+        return value
+
+    @field_validator("retrieval_max_context_characters")
+    @classmethod
+    def validate_context_characters(cls, value: int) -> int:
+        if value > 100_000:
+            raise ValueError("must not exceed 100000")
+        return value
+
     @field_validator("openrouter_base_url")
     @classmethod
     def validate_openrouter_base_url(cls, value: str) -> str:

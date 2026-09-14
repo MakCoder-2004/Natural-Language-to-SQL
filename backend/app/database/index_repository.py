@@ -533,6 +533,43 @@ class IndexRepository:
         except Exception as exc:
             raise IndexServiceError("The local schema index count could not be read.") from exc
 
+    def active_embedding_count(
+        self,
+        source_key: str,
+        source_fingerprint: str,
+        *,
+        embedding_model: str,
+    ) -> int:
+        """Count active documents with vectors from the expected embedding model."""
+
+        statement = (
+            select(func.count())
+            .select_from(
+                schema_documents.join(
+                    schema_embeddings,
+                    and_(
+                        schema_documents.c.run_id == schema_embeddings.c.run_id,
+                        schema_documents.c.document_key == schema_embeddings.c.document_key,
+                    ),
+                )
+            )
+            .where(
+                and_(
+                    schema_documents.c.source_key == source_key,
+                    schema_documents.c.source_fingerprint == source_fingerprint,
+                    schema_documents.c.active.is_(True),
+                    schema_embeddings.c.embedding_model == embedding_model,
+                )
+            )
+        )
+        try:
+            with self.database.connect() as connection:
+                return int(connection.execute(statement).scalar_one())
+        except IndexServiceError:
+            raise
+        except Exception as exc:
+            raise IndexServiceError("The local schema embedding count could not be read.") from exc
+
     def _read_retrieved_documents(
         self, statement: Any, description: str
     ) -> tuple[RetrievedIndexDocument, ...]:
