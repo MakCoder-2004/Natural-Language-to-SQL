@@ -166,7 +166,6 @@ class SourceIntrospector:
         inspector: Inspector,
         schema_name: str,
     ) -> SchemaMetadata:
-        
         relation_kinds = _relation_kinds(inspector, schema_name)
         relation_names = set(relation_kinds)
         relation_comments, column_comments = _read_comments(connection, schema_name)
