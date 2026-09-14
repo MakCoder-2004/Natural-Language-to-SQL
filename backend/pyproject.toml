@@ -10,6 +10,7 @@ requires-python = ">=3.12,<3.13"
 
 dependencies = [
     "fastapi>=0.115,<1",
+    "langchain>=0.3,<0.4",
     "langchain-community>=0.3,<0.4",
     "langchain-core>=0.3,<0.4",
     "langchain-openai>=0.3,<0.4",

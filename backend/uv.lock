@@ -1002,6 +1002,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "langchain" },
     { name = "langchain-community" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
@@ -1029,6 +1030,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28,<1" },
+    { name = "langchain", specifier = ">=0.3,<0.4" },
     { name = "langchain-community", specifier = ">=0.3,<0.4" },
     { name = "langchain-core", specifier = ">=0.3,<0.4" },
     { name = "langchain-openai", specifier = ">=0.3,<0.4" },
@@ -1066,6 +1068,10 @@ dependencies = [
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/4c/de/59fc3d2e63dfd367e803417c40e70e35b6c0a0997420cb082d351cdd052b/sqlalchemy-2.0.53.tar.gz", hash = "sha256:b568a8ac0778988c2710476017ff74fb5dcb9b9322d757189c3d7fc4cc8026fa", size = 9966200, upload-time = "2026-09-14T20:37:31.731Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/a9/fa8d769bdbcdf9db40ce1491da397bb7ea45e381791800319b4e7c5d6635/sqlalchemy-2.0.53-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4ca22c441645ead511eb73f1efdb0f3a723f138e28f8362224813f64a8097e15", size = 2187584, upload-time = "2026-09-14T22:43:16.399Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/3c/6ee5fe746b0820335d30c5172527e9a2c7409ac632376d15fded38ff715c/sqlalchemy-2.0.53-py3-none-any.whl", hash = "sha256:87eb05fc61a0835dfe1cbf135d0f99cb2764ad09350d92fdd3fe1b827a557d65", size = 1958002, upload-time = "2026-09-14T22:40:04.431Z" },
+]
 
 [[package]]
 name = "starlette"
