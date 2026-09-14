@@ -55,37 +55,37 @@ _RELATION_ACCESS_SQL = text(
     SELECT
         has_table_privilege(
             current_user,
-            format('%I.%I', :schema_name, :relation_name),
+            format('%I.%I', CAST(:schema_name AS text), CAST(:relation_name AS text)),
             'SELECT'
         ) AS can_select,
         has_table_privilege(
             current_user,
-            format('%I.%I', :schema_name, :relation_name),
+            format('%I.%I', CAST(:schema_name AS text), CAST(:relation_name AS text)),
             'INSERT'
         ) AS can_insert,
         has_table_privilege(
             current_user,
-            format('%I.%I', :schema_name, :relation_name),
+            format('%I.%I', CAST(:schema_name AS text), CAST(:relation_name AS text)),
             'UPDATE'
         ) AS can_update,
         has_table_privilege(
             current_user,
-            format('%I.%I', :schema_name, :relation_name),
+            format('%I.%I', CAST(:schema_name AS text), CAST(:relation_name AS text)),
             'DELETE'
         ) AS can_delete,
         has_table_privilege(
             current_user,
-            format('%I.%I', :schema_name, :relation_name),
+            format('%I.%I', CAST(:schema_name AS text), CAST(:relation_name AS text)),
             'TRUNCATE'
         ) AS can_truncate,
         has_table_privilege(
             current_user,
-            format('%I.%I', :schema_name, :relation_name),
+            format('%I.%I', CAST(:schema_name AS text), CAST(:relation_name AS text)),
             'REFERENCES'
         ) AS can_references,
         has_table_privilege(
             current_user,
-            format('%I.%I', :schema_name, :relation_name),
+            format('%I.%I', CAST(:schema_name AS text), CAST(:relation_name AS text)),
             'TRIGGER'
         ) AS can_trigger,
         pg_has_role(current_user, relation_data.relowner, 'member') AS owns_relation

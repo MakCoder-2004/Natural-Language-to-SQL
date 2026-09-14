@@ -33,7 +33,25 @@ public browser configuration value and does not contain credentials.
 
 `SOURCE_SCHEMA_SCOPE` is a comma-separated list of approved PostgreSQL schema
 names. It identifies schemas, not business tables. PostgreSQL system schemas
-are rejected by backend configuration validation.
+are rejected by backend configuration validation. The source introspector fails
+closed when a configured schema does not exist.
+
+Database connection settings are backend-only. Pool settings control the bounded
+SQLAlchemy engines, `DATABASE_CONNECT_TIMEOUT_SECONDS` controls connection
+attempts, and `QUERY_TIMEOUT_SECONDS` becomes PostgreSQL's server-side
+`statement_timeout`.
+
+## External Source Role
+
+The source database must already exist and must be administered outside this
+repository. Use a dedicated read-only role with `CONNECT`, schema `USAGE`, and
+`SELECT` on the approved scope. Do not make that role an object owner or grant
+it `CREATE`, `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `REFERENCES`, `TRIGGER`,
+superuser, replication, or role/database administration privileges.
+
+The backend verifies these permissions using PostgreSQL catalog functions. It
+does not create roles, alter permissions, or probe write/DDL operations against
+the real source database.
 
 ## Compose Lifecycle
 
@@ -80,6 +98,7 @@ uv run ruff format --check app tests
 uv run ruff check app tests
 uv run mypy app tests
 uv run pytest
+uv run pytest tests/integration -m integration
 ```
 
 Frontend setup and checks use npm scripts from `frontend/package.json`:
@@ -97,14 +116,13 @@ npm run build
 
 ## Health Semantics
 
-`GET /api/health` reports process availability, configuration state, whether
-source and index connection settings are present, OpenRouter configuration, and
-schema-index readiness.
+`GET /api/health` reports process availability, configuration state, source and
+index connectivity, source read-only verification, OpenRouter configuration,
+and schema-index readiness.
 
-The foundation reports configured database URLs as `configured`, not as
-reachable. Database connectivity probes belong to the source/index database
-milestones. Schema-index status remains `not_initialized` until indexing is
-implemented.
+Database components can report `not_configured`, `invalid`, `not_checked`,
+`reachable`, `unavailable`, or `permission_denied`. The schema-index status
+remains `not_initialized` until indexing is implemented.
 
 Health responses and startup logs never include passwords, API keys, connection
 URLs, stack traces, or business rows.

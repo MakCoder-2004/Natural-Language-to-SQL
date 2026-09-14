@@ -27,6 +27,7 @@ dev = [
     "pytest>=8.3,<9",
     "pytest-asyncio>=0.25,<1",
     "ruff>=0.9,<1",
+    "testcontainers[postgres]>=4.10,<5",
 ]
 
 [tool.setuptools.packages.find]
@@ -54,3 +55,6 @@ files = ["app", "tests"]
 testpaths = ["tests"]
 addopts = "-ra"
 asyncio_mode = "auto"
+markers = [
+    "integration: requires Docker and disposable PostgreSQL containers",
+]

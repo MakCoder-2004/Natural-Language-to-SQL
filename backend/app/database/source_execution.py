@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
+
+from sqlalchemy import Connection
 
 from app.database.errors import DatabaseSeparationError
 from app.database.index_connection import IndexDatabase
@@ -20,3 +24,10 @@ class SourceExecutionBinding:
             raise DatabaseSeparationError(
                 "Index database handles cannot be used for source execution."
             )
+
+    @contextmanager
+    def connect(self) -> Iterator[Connection]:
+        """Expose only the explicitly bound source connection to later executors."""
+
+        with self.database.connect() as connection:
+            yield connection

@@ -76,15 +76,14 @@ _INDEX_DETAILS_SQL = text(
         index_key.ordinality AS position,
         CASE
             WHEN index_key.attnum > 0 THEN index_attribute.attname
-            ELSE pg_get_indexdef(index_data.indexrelid, index_key.ordinality, true)
+            ELSE pg_get_indexdef(index_data.indexrelid, index_key.ordinality::integer, true)
         END AS indexed_name,
         CASE
-            WHEN (index_data.indoption[index_key.ordinality] & 1) = 1 THEN 'desc'
+            WHEN (index_data.indoption[index_key.ordinality::integer - 1] & 1) = 1 THEN 'desc'
             ELSE 'asc'
         END AS sort_order,
         CASE
-            WHEN (index_data.indoption[index_key.ordinality] & 2) = 2 THEN 'first'
-            WHEN (index_data.indoption[index_key.ordinality] & 1) = 1 THEN 'first'
+            WHEN (index_data.indoption[index_key.ordinality::integer - 1] & 2) = 2 THEN 'first'
             ELSE 'last'
         END AS nulls_order,
         index_key.ordinality > index_data.indnkeyatts AS is_included

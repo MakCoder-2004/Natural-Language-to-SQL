@@ -139,18 +139,18 @@ the configured schema scope, and generate a stable schema fingerprint.
 - [x] Introspect foreign keys and relationship metadata.
 - [x] Introspect relevant indexes and ordering information.
 - [x] Generate a stable source schema fingerprint.
-- [ ] Verify the source connection is used for both introspection and query execution.
-- [ ] Document the required read-only source database role.
-- [ ] Verify that the source role cannot write or alter schema objects.
+- [x] Verify the source connection is used for both introspection and query execution.
+- [x] Document the required read-only source database role.
+- [x] Verify that the source role cannot write or alter schema objects.
 - [x] Add connection failure and permission failure handling.
-- [ ] Add integration tests against a disposable or dedicated PostgreSQL test database.
+- [x] Add integration tests against a disposable or dedicated PostgreSQL test database.
 
 ### Exit Criteria
 
-- [ ] The backend can inspect an arbitrary supported source PostgreSQL database.
-- [ ] Introspection returns enough metadata for document generation and SQL validation.
-- [ ] The application does not modify, migrate, or seed the source database.
-- [ ] Source and index connections remain isolated.
+- [x] The backend can inspect an arbitrary supported source PostgreSQL database.
+- [x] Introspection returns enough metadata for document generation and SQL validation.
+- [x] The application does not modify, migrate, or seed the source database.
+- [x] Source and index connections remain isolated.
 
 ---
 

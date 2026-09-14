@@ -12,7 +12,11 @@ from sqlalchemy.exc import DBAPIError, OperationalError, SQLAlchemyError
 
 from app.config import Settings
 from app.database.engine import create_database_engine, parse_postgres_url
-from app.database.errors import DatabasePermissionError, DatabaseUnavailableError
+from app.database.errors import (
+    DatabasePermissionError,
+    DatabaseSeparationError,
+    DatabaseUnavailableError,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,12 +48,18 @@ class SourceDatabase:
         except SQLAlchemyError as exc:
             raise DatabaseUnavailableError("The source database operation failed.") from exc
 
-    def langchain_database(self) -> SQLDatabase:
-        """Return LangChain's SQL adapter backed by this exact source engine."""
+    def langchain_database(self, schema_name: str) -> SQLDatabase:
+        """Return a scoped LangChain adapter backed by this exact source engine."""
+
+        if schema_name not in self.schema_scope:
+            raise DatabaseSeparationError(
+                "LangChain SQL access must use an approved source schema."
+            )
 
         try:
             return SQLDatabase(
                 engine=self.engine,
+                schema=schema_name,
                 sample_rows_in_table_info=0,
                 indexes_in_table_info=False,
                 view_support=True,
@@ -68,7 +78,13 @@ def _is_permission_error(error: DBAPIError) -> bool:
     """Recognize PostgreSQL authentication and privilege SQLSTATE classes."""
 
     sqlstate = getattr(error.orig, "sqlstate", None)
-    return isinstance(sqlstate, str) and (sqlstate == "42501" or sqlstate.startswith("28"))
+    if isinstance(sqlstate, str) and (sqlstate == "42501" or sqlstate.startswith("28")):
+        return True
+    pgcode = getattr(error.orig, "pgcode", None)
+    if isinstance(pgcode, str) and (pgcode == "42501" or pgcode.startswith("28")):
+        return True
+    message = str(error.orig).lower()
+    return "authentication failed" in message or "no pg_hba.conf" in message
 
 
 def create_source_database(settings: Settings) -> SourceDatabase:
