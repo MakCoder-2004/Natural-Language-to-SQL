@@ -203,12 +203,16 @@ class HybridSchemaRetrievalService:
         stage_latency["relationship_expansion"] = _milliseconds(expansion_started)
 
         columns_started = perf_counter()
-        column_documents = repository.list_active_relation_documents(
-            readiness.source_key,
-            readiness.source_fingerprint,
-            all_relation_keys,
-            category="column",
-            limit=_repository_limit(len(all_relation_keys) * limits.max_columns_per_table),
+        column_documents = tuple(
+            document
+            for relation_key in all_relation_keys
+            for document in repository.list_active_relation_documents(
+                readiness.source_key,
+                readiness.source_fingerprint,
+                (relation_key,),
+                category="column",
+                limit=_repository_limit(limits.max_columns_per_table),
+            )
         )
         columns_by_relation: dict[tuple[str, str], list[RetrievedIndexDocument]] = defaultdict(list)
         for document in column_documents:
