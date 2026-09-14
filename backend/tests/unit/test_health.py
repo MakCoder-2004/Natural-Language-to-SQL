@@ -1,4 +1,5 @@
 from app.config import Settings
+from app.database.services import DatabaseServices
 from app.main import create_app
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
@@ -23,7 +24,7 @@ def valid_settings() -> Settings:
 
 
 def test_health_reports_foundation_state_without_secrets() -> None:
-    with TestClient(create_app(valid_settings())) as client:
+    with TestClient(create_app(valid_settings(), database_services=DatabaseServices())) as client:
         response = client.get("/api/health")
 
     assert response.status_code == 200

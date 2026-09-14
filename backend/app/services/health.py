@@ -4,12 +4,21 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from sqlalchemy import text
+
 from app.config import ConfigurationIssue, Settings
+from app.database.errors import DatabasePermissionError, DatabaseUnavailableError
+from app.database.index_connection import IndexDatabase
+from app.database.services import DatabaseServices
+from app.database.source_connection import SourceDatabase
+from app.database.source_permissions import verify_source_read_only_access
 from app.models.health import HealthComponent, HealthResponse
 
 
-def build_health_response(settings: Settings) -> HealthResponse:
-    """Build a safe foundation health response from configuration state."""
+def build_health_response(
+    settings: Settings, database_services: DatabaseServices | None = None
+) -> HealthResponse:
+    """Build a safe health response from configuration and bounded database probes."""
 
     issues = settings.configuration_issues()
     source_database = _database_component(
@@ -17,12 +26,15 @@ def build_health_response(settings: Settings) -> HealthResponse:
         and bool(settings.source_database_url.get_secret_value().strip()),
         "SOURCE_DATABASE_URL",
         issues,
+        database_services.source if database_services is not None else None,
+        verify_read_only=True,
     )
     index_database = _database_component(
         settings.index_database_url is not None
         and bool(settings.index_database_url.get_secret_value().strip()),
         "INDEX_DATABASE_URL",
         issues,
+        database_services.index if database_services is not None else None,
     )
     openrouter = _configured_component(
         settings.openrouter_api_key is not None
@@ -56,8 +68,11 @@ def _database_component(
     configured: bool,
     field: str,
     issues: Iterable[ConfigurationIssue],
+    database: SourceDatabase | IndexDatabase | None,
+    *,
+    verify_read_only: bool = False,
 ) -> HealthComponent:
-    return _configured_component(
+    component = _configured_component(
         configured,
         field,
         issues,
@@ -65,6 +80,59 @@ def _database_component(
             "Connection settings are present; connectivity is not checked by the foundation."
         ),
         missing_detail="Connection settings are not configured.",
+    )
+    if not configured or database is None or component.status != "configured":
+        return component
+
+    try:
+        if verify_read_only:
+            if not isinstance(database, SourceDatabase):
+                return HealthComponent(
+                    status="permission_denied",
+                    configured=True,
+                    detail="The source health dependency is invalid.",
+                    reachable=False,
+                    read_only_verified=False,
+                )
+            verify_source_read_only_access(database)
+            return HealthComponent(
+                status="reachable",
+                configured=True,
+                detail="Source database is reachable and read-only access is verified.",
+                reachable=True,
+                read_only_verified=True,
+            )
+        if not isinstance(database, IndexDatabase):
+            return HealthComponent(
+                status="unavailable",
+                configured=True,
+                detail=f"{field} health dependency is unavailable.",
+                reachable=False,
+            )
+        with database.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except DatabasePermissionError:
+        return HealthComponent(
+            status="permission_denied",
+            configured=True,
+            detail=f"{field} is reachable but the configured role is not authorized.",
+            reachable=True,
+            read_only_verified=False if verify_read_only else None,
+        )
+    except DatabaseUnavailableError:
+        return HealthComponent(
+            status="unavailable",
+            configured=True,
+            detail=f"{field} could not be reached.",
+            reachable=False,
+            read_only_verified=False if verify_read_only else None,
+        )
+    return HealthComponent(
+        status="reachable",
+        configured=True,
+        detail=f"{field} is reachable.",
+        reachable=True,
+        read_only_verified=None,
     )
 
 

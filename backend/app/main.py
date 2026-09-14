@@ -24,11 +24,15 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
 
     settings = cast(Settings, application.state.settings)
     application.state.settings = settings
-    try:
-        database_services = create_database_services(settings)
-    except DatabaseServiceError as exc:
-        logger.warning("database_services_unavailable error_code=%s", type(exc).__name__)
-        database_services = DatabaseServices()
+    database_services = cast(
+        DatabaseServices | None, getattr(application.state, "database_services", None)
+    )
+    if database_services is None:
+        try:
+            database_services = create_database_services(settings)
+        except DatabaseServiceError as exc:
+            logger.warning("database_services_unavailable error_code=%s", type(exc).__name__)
+            database_services = DatabaseServices()
     application.state.database_services = database_services
     issues = settings.configuration_issues()
     if issues:
@@ -45,7 +49,9 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         database_services.dispose()
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None, database_services: DatabaseServices | None = None
+) -> FastAPI:
     """Create the FastAPI application with optional test settings."""
 
     resolved_settings = settings if settings is not None else get_settings()
@@ -55,6 +61,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     application.state.settings = resolved_settings
+    if database_services is not None:
+        application.state.database_services = database_services
     application.add_middleware(
         CORSMiddleware,
         allow_origins=[

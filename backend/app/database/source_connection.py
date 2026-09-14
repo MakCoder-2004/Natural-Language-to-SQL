@@ -12,7 +12,7 @@ from sqlalchemy.exc import DBAPIError, OperationalError, SQLAlchemyError
 
 from app.config import Settings
 from app.database.engine import create_database_engine, parse_postgres_url
-from app.database.errors import DatabaseUnavailableError
+from app.database.errors import DatabasePermissionError, DatabaseUnavailableError
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,8 +30,16 @@ class SourceDatabase:
             with self.engine.connect() as connection:
                 yield connection
         except OperationalError as exc:
+            if _is_permission_error(exc):
+                raise DatabasePermissionError(
+                    "The source database role is not authorized."
+                ) from exc
             raise DatabaseUnavailableError("The source database is unavailable.") from exc
         except DBAPIError as exc:
+            if _is_permission_error(exc):
+                raise DatabasePermissionError(
+                    "The source database role is not authorized."
+                ) from exc
             raise DatabaseUnavailableError("The source database operation failed.") from exc
         except SQLAlchemyError as exc:
             raise DatabaseUnavailableError("The source database operation failed.") from exc
@@ -54,6 +62,13 @@ class SourceDatabase:
         """Release pooled source connections."""
 
         self.engine.dispose()
+
+
+def _is_permission_error(error: DBAPIError) -> bool:
+    """Recognize PostgreSQL authentication and privilege SQLSTATE classes."""
+
+    sqlstate = getattr(error.orig, "sqlstate", None)
+    return isinstance(sqlstate, str) and (sqlstate == "42501" or sqlstate.startswith("28"))
 
 
 def create_source_database(settings: Settings) -> SourceDatabase:

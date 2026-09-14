@@ -11,6 +11,9 @@ HealthStatus = Literal[
     "not_checked",
     "not_initialized",
     "invalid",
+    "reachable",
+    "unavailable",
+    "permission_denied",
 ]
 
 
@@ -22,6 +25,8 @@ class HealthComponent(BaseModel):
     status: HealthStatus
     configured: bool
     detail: str
+    reachable: bool | None = None
+    read_only_verified: bool | None = None
 
 
 class HealthResponse(BaseModel):

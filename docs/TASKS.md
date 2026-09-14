@@ -142,7 +142,7 @@ the configured schema scope, and generate a stable schema fingerprint.
 - [ ] Verify the source connection is used for both introspection and query execution.
 - [ ] Document the required read-only source database role.
 - [ ] Verify that the source role cannot write or alter schema objects.
-- [ ] Add connection failure and permission failure handling.
+- [x] Add connection failure and permission failure handling.
 - [ ] Add integration tests against a disposable or dedicated PostgreSQL test database.
 
 ### Exit Criteria
