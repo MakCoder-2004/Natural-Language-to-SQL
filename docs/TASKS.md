@@ -79,10 +79,10 @@ configuration handling, and initial health reporting.
 - [x] Create `evaluation/datasets/`, `evaluation/runners/`, and `evaluation/reports/` directories.
 - [x] Create `tests/fixtures/` and keep fixture database setup isolated from production code.
 - [x] Create documentation directories for architecture, security, retrieval, and evaluation.
-- [ ] Configure the backend language version and dependency management.
-- [ ] Configure the frontend runtime, package manager, and dependency management.
-- [ ] Add formatting, linting, type-checking, and test commands for the backend.
-- [ ] Add formatting, linting, type-checking, and test commands for the frontend.
+- [x] Configure the backend language version and dependency management.
+- [x] Configure the frontend runtime, package manager, and dependency management.
+- [x] Add formatting, linting, type-checking, and test commands for the backend.
+- [x] Add formatting, linting, type-checking, and test commands for the frontend.
 - [ ] Add `.env.example` containing placeholders only.
 - [ ] Define `SOURCE_DATABASE_URL` configuration.
 - [ ] Define `INDEX_DATABASE_URL` configuration.
