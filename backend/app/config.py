@@ -23,6 +23,8 @@ DEFAULT_INDEX_POOL_SIZE: Final[int] = 5
 DEFAULT_INDEX_MAX_OVERFLOW: Final[int] = 10
 DEFAULT_INDEX_POOL_TIMEOUT_SECONDS: Final[int] = 10
 DEFAULT_INDEX_POOL_RECYCLE_SECONDS: Final[int] = 1800
+DEFAULT_EMBEDDING_BATCH_SIZE: Final[int] = 64
+DEFAULT_EMBEDDING_REQUEST_TIMEOUT_SECONDS: Final[int] = 60
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +67,7 @@ class Settings(BaseSettings):
     embedding_model: str | None = None
 
     source_schema_scope: str = DEFAULT_SOURCE_SCHEMA_SCOPE
+    semantic_metadata_path: str = "../schema_index/metadata"
     database_connect_timeout_seconds: int = DEFAULT_DATABASE_CONNECT_TIMEOUT_SECONDS
     source_pool_size: int = DEFAULT_SOURCE_POOL_SIZE
     source_max_overflow: int = DEFAULT_SOURCE_MAX_OVERFLOW
@@ -78,6 +81,8 @@ class Settings(BaseSettings):
     max_returned_rows: int = 1000
     max_result_bytes: int = 5_000_000
     query_timeout_seconds: int = 30
+    embedding_batch_size: int = DEFAULT_EMBEDDING_BATCH_SIZE
+    embedding_request_timeout_seconds: int = DEFAULT_EMBEDDING_REQUEST_TIMEOUT_SECONDS
     log_level: str = "INFO"
     frontend_origins: str = "http://localhost:5173"
 
@@ -97,6 +102,8 @@ class Settings(BaseSettings):
         "max_returned_rows",
         "max_result_bytes",
         "query_timeout_seconds",
+        "embedding_batch_size",
+        "embedding_request_timeout_seconds",
     )
     @classmethod
     def validate_positive_limit(cls, value: int) -> int:

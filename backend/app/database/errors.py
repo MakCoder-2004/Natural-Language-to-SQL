@@ -37,3 +37,21 @@ class SourceIntrospectionError(DatabaseServiceError):
     """Raised when source metadata cannot be collected safely."""
 
     error_code = "source_introspection_error"
+
+
+class IndexServiceError(RuntimeError):
+    """Base error for local schema-index operations."""
+
+    error_code = "index_error"
+
+
+class SemanticMetadataError(IndexServiceError):
+    """Raised when version-controlled semantic metadata is invalid."""
+
+    error_code = "semantic_metadata_error"
+
+
+class EmbeddingServiceError(IndexServiceError):
+    """Raised when an embedding provider cannot produce valid vectors."""
+
+    error_code = "embedding_error"

@@ -178,10 +178,10 @@ Source metadata + semantic metadata
 
 ### Checklist
 
-- [ ] Define the versioned semantic metadata format.
-- [ ] Support descriptions for discovered schemas, tables, columns, and relationships.
-- [ ] Ensure semantic metadata can describe arbitrary source identifiers.
-- [ ] Define metadata behavior for missing or stale semantic descriptions.
+- [x] Define the versioned semantic metadata format.
+- [x] Support descriptions for discovered schemas, tables, columns, and relationships.
+- [x] Ensure semantic metadata can describe arbitrary source identifiers.
+- [x] Define metadata behavior for missing or stale semantic descriptions.
 - [ ] Build schema documents from technical metadata.
 - [ ] Include qualified identifiers, types, constraints, relationships, and descriptions.
 - [ ] Include source fingerprint and document version in every indexed document.

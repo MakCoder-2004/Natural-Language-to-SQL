@@ -108,6 +108,7 @@ class SchemaMetadata:
 
     name: str
     relations: tuple[RelationMetadata, ...]
+    comment: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

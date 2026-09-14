@@ -35,7 +35,15 @@ from app.database.models import (
 )
 from app.database.source_connection import SourceDatabase
 
-_METADATA_VERSION = 1
+_METADATA_VERSION = 2
+
+_SCHEMA_COMMENTS_SQL = text(
+    """
+    SELECT obj_description(n.oid, 'pg_namespace') AS schema_comment
+    FROM pg_catalog.pg_namespace AS n
+    WHERE n.nspname = :schema_name
+    """
+)
 
 _RELATION_COMMENTS_SQL = text(
     """
@@ -167,7 +175,7 @@ class SourceIntrospector:
     ) -> SchemaMetadata:
         relation_kinds = _relation_kinds(inspector, schema_name)
         relation_names = set(relation_kinds)
-        relation_comments, column_comments = _read_comments(connection, schema_name)
+        schema_comment, relation_comments, column_comments = _read_comments(connection, schema_name)
         relations = tuple(
             self._introspect_relation(
                 connection,
@@ -180,7 +188,7 @@ class SourceIntrospector:
             )
             for relation_name in sorted(relation_names)
         )
-        return SchemaMetadata(name=schema_name, relations=relations)
+        return SchemaMetadata(name=schema_name, relations=relations, comment=schema_comment)
 
     def _introspect_relation(
         self,
@@ -274,7 +282,13 @@ def _relation_kinds(inspector: Inspector, schema_name: str) -> dict[str, Relatio
 
 def _read_comments(
     connection: Connection, schema_name: str
-) -> tuple[dict[str, str | None], dict[tuple[str, str], str | None]]:
+) -> tuple[str | None, dict[str, str | None], dict[tuple[str, str], str | None]]:
+    schema_row = (
+        connection.execute(_SCHEMA_COMMENTS_SQL, {"schema_name": schema_name})
+        .mappings()
+        .one_or_none()
+    )
+    schema_comment = _text(schema_row.get("schema_comment")) if schema_row else None
     relation_comments = {
         str(row["relation_name"]): _text(row.get("relation_comment"))
         for row in connection.execute(
@@ -285,7 +299,7 @@ def _read_comments(
         (str(row["relation_name"]), str(row["column_name"])): _text(row.get("column_comment"))
         for row in connection.execute(_COLUMN_COMMENTS_SQL, {"schema_name": schema_name}).mappings()
     }
-    return relation_comments, column_comments
+    return schema_comment, relation_comments, column_comments
 
 
 def _column_metadata(

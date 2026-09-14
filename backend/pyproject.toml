@@ -9,6 +9,7 @@ description = "Backend foundation for a safe schema-aware natural-language-to-SQ
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.115,<1",
+    "httpx>=0.28,<1",
     "langchain-community>=0.3,<0.4",
     "langchain-core>=0.3,<0.4",
     "langchain-openai>=0.3,<0.4",
@@ -16,18 +17,19 @@ dependencies = [
     "psycopg[binary]>=3.2,<4",
     "pydantic>=2.10,<3",
     "pydantic-settings>=2.7,<3",
+    "pyyaml>=6,<7",
     "sqlalchemy>=2,<3",
     "uvicorn[standard]>=0.34,<1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "httpx>=0.28,<1",
     "mypy>=1.14,<2",
     "pytest>=8.3,<9",
     "pytest-asyncio>=0.25,<1",
     "ruff>=0.9,<1",
     "testcontainers[postgres]>=4.10,<5",
+    "types-pyyaml>=6,<7",
 ]
 
 [tool.setuptools.packages.find]
