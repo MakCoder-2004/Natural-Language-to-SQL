@@ -42,6 +42,9 @@ frontend/dist/
 schema_index/data/
 schema_index/generated/
 
+# Local OpenCode tooling
+.opencode/
+
 # Editor and operating-system files
 .idea/
 .vscode/
