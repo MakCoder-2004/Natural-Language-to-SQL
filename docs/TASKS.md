@@ -197,16 +197,16 @@ Source metadata + semantic metadata
 - [x] Implement index refresh behavior for source schema changes.
 - [x] Implement index readiness and freshness checks.
 - [x] Report indexing failures without exposing secrets.
-- [ ] Add tests for document generation and semantic metadata merging.
-- [ ] Add tests for repeat indexing and stale-document replacement.
-- [ ] Add integration tests for pgvector writes and reads.
+- [x] Add tests for document generation and semantic metadata merging.
+- [x] Add tests for repeat indexing and stale-document replacement.
+- [x] Add integration tests for pgvector writes and reads.
 
 ### Exit Criteria
 
-- [ ] A real source schema can be indexed without hardcoded business tables.
-- [ ] Re-running indexing does not create uncontrolled duplicates.
-- [ ] The local index contains searchable documents and embeddings.
-- [ ] Index readiness and source freshness are observable.
+- [x] A real source schema can be indexed without hardcoded business tables.
+- [x] Re-running indexing does not create uncontrolled duplicates.
+- [x] The local index contains searchable documents and embeddings.
+- [x] Index readiness and source freshness are observable.
 
 ---
 

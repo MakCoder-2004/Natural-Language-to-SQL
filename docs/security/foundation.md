@@ -14,7 +14,9 @@ never secret values or complete connection URLs.
 
 The external source database is not represented by a local Compose container.
 The local pgvector service is only for future schema-index data. No source
-business migrations, seed scripts, or fixed business tables are present.
+business migrations, seed scripts, or fixed business tables are present. The
+indexing command creates the `vector` extension and index tables only in the
+separate local index database.
 
 Future query execution must receive an explicit source-database dependency and
 must remain behind deterministic SQL validation and the source database's
@@ -31,6 +33,11 @@ outside the configured scope.
 Technical comments, defaults, and other catalog text are untrusted metadata.
 They are collected as data for later document generation and are not interpreted
 as instructions.
+
+Semantic metadata is version-controlled application input. It is matched only
+to exact discovered source identifiers. Stale references are reported and never
+create fictional source objects. Embedding requests use backend-only
+OpenRouter credentials, and index failures expose only safe error categories.
 
 ## Untrusted Inputs
 

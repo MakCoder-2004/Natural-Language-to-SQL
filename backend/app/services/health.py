@@ -53,9 +53,14 @@ def build_health_response(
         source_component=source_database,
         index_component=index_database,
     )
-    overall_status: Literal["ready", "degraded"] = (
-        "ready" if schema_index.status == "ready" else "degraded"
+    overall_ready = (
+        not issues
+        and source_database.status == "reachable"
+        and index_database.status == "reachable"
+        and schema_index.status == "ready"
+        and openrouter.status in {"configured", "reachable"}
     )
+    overall_status: Literal["ready", "degraded"] = "ready" if overall_ready else "degraded"
     return HealthResponse(
         status=overall_status,
         service=HealthComponent(

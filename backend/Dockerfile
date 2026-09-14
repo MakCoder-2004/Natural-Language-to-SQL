@@ -10,8 +10,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
-COPY app ./app
+ENV SEMANTIC_METADATA_PATH=/app/schema_index/metadata
+
+COPY backend/pyproject.toml backend/uv.lock ./
+COPY backend/app ./app
+COPY schema_index ./schema_index
 
 RUN uv sync --frozen --no-dev
 

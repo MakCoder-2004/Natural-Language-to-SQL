@@ -5,11 +5,12 @@ application for an existing PostgreSQL database. It retrieves relevant schema
 metadata, proposes SQL, validates it deterministically, and executes only
 approved read-only queries.
 
-The project is currently at Milestone 2: Source Database Connection and
-Introspection. The repository contains the runtime skeleton, isolated source
-and index database services, scoped PostgreSQL metadata introspection, read-only
-access verification, and stable source schema fingerprinting. Schema indexing
-and query generation are added in later milestones.
+The project is currently at Milestone 3: Schema Documentation and Indexing. The
+repository contains isolated source and index database services, scoped
+PostgreSQL metadata introspection, read-only access verification, versioned
+semantic metadata, deterministic schema documents, LangChain-backed OpenRouter
+embeddings, repeatable pgvector indexing, and index freshness reporting.
+Query retrieval and SQL generation are added in later milestones.
 
 ## Architecture Boundary
 
@@ -47,6 +48,16 @@ docker compose up --build
 
 The frontend is available at `http://localhost:5173` and the backend health
 endpoint is available at `http://localhost:8000/api/health`.
+
+Run the initial schema index from another terminal:
+
+```powershell
+docker compose run --rm backend index-schema
+```
+
+The backend reads technical metadata from the external source, merges the
+version-controlled files under `schema_index/metadata`, generates embeddings,
+and writes documents only to the local `index-db` service.
 
 The source database is not started by Compose. Its network access depends on
 the configured environment. A missing source URL leaves the backend available
@@ -86,6 +97,34 @@ docker compose down
 Do not use `docker compose down -v` unless the local schema-index data should be
 deleted.
 
+## Schema Metadata and Index Refresh
+
+Semantic metadata is versioned under `schema_index/metadata`. It uses
+`metadata_version: 1` and structured source identifiers for schemas, relations,
+columns, relationships, and semantic concepts. Technical PostgreSQL metadata
+remains authoritative, and stale semantic references are reported without
+creating fictional source objects.
+
+The default embedding model is:
+
+```text
+nvidia/nemotron-3-embed-1b:free
+```
+
+It is called through LangChain's `OpenAIEmbeddings` integration configured with
+OpenRouter's OpenAI-compatible embeddings endpoint. The model ID remains
+configuration-driven.
+
+Refresh after source schema or semantic metadata changes:
+
+```powershell
+docker compose run --rm backend index-schema
+```
+
+The operation is idempotent. It stages a complete run and promotes it
+atomically, preserving the previous active index when embedding or database
+work fails. It never writes to the external source schema.
+
 ## Direct Development Commands
 
 The backend commands are provided by `backend/pyproject.toml` and its `uv.lock`:
@@ -116,8 +155,7 @@ npm run build
 
 ## Scope
 
-Milestone 2 still does not include a fixed business schema, source migrations,
-source seed data, SQL generation, SQL validation, schema indexing, or public
-database query execution. Representative test schemas and rows belong only
-under `backend/tests/fixtures/` and are created inside disposable integration
-containers.
+Milestone 3 still does not include hybrid retrieval, SQL generation, SQL
+validation, or public database query execution. Representative test schemas
+and rows belong only under `backend/tests/fixtures/` and are created inside
+disposable integration containers.

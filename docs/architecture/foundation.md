@@ -50,6 +50,36 @@ SOURCE_DATABASE_URL
     -> stable SHA-256 schema fingerprint
 ```
 
+## Schema Indexing
+
+Milestone 3 extends the pipeline without changing the source boundary:
+
+```text
+technical source snapshot + versioned semantic metadata
+    -> deterministic table, column, relationship, and concept documents
+    -> LangChain OpenAI-compatible embeddings configured for OpenRouter
+    -> staged local pgvector rows
+    -> atomic active-index promotion
+```
+
+The configured default embedding model is
+`nvidia/nemotron-3-embed-1b:free`. The implementation uses LangChain's verified
+`OpenAIEmbeddings` class with `OPENROUTER_BASE_URL` set to OpenRouter's
+OpenAI-compatible API base. The application owns the provider-neutral embedding
+contract and validation, but does not implement a guessed provider-specific
+LangChain class.
+
+The local index uses a dedicated `nl2sql_index` PostgreSQL schema containing
+index runs, normalized metadata, rendered documents, and pgvector embeddings.
+Index initialization executes only against `IndexDatabase`. A complete run is
+staged first and promoted transactionally, so a failed refresh cannot destroy
+the previous active index.
+
+The index stores technical metadata and application-controlled semantic
+descriptions only. Source business rows are never sampled or embedded. The
+health endpoint compares the active source fingerprint and semantic metadata
+digest with the current source and configuration before reporting `ready`.
+
 The health endpoint performs bounded source and index probes. Source health also
 checks the configured role's read-only permissions. Database URLs, passwords,
 and raw driver errors never appear in health responses or normal logs.

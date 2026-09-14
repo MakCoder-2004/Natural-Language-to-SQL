@@ -26,6 +26,7 @@ The following values are backend-only:
 - `INDEX_DATABASE_URL`
 - `OPENROUTER_API_KEY`
 - Model role identifiers
+- Semantic metadata path and OpenRouter attribution values
 - Query limits and source scope
 
 The frontend receives no backend environment file. `VITE_API_BASE_URL` is a
@@ -63,7 +64,12 @@ docker compose up --build
 
 The `index-db` container has a `pg_isready` health check and stores data in the
 named `index_db_data` volume. The backend does not claim that the schema index
-is ready until a later indexing milestone initializes it.
+is ready until the indexing command completes successfully. Initialize or
+refresh it with:
+
+```powershell
+docker compose run --rm backend index-schema
+```
 
 Inspect service state:
 
@@ -118,11 +124,29 @@ npm run build
 
 `GET /api/health` reports process availability, configuration state, source and
 index connectivity, source read-only verification, OpenRouter configuration,
-and schema-index readiness.
+and schema-index readiness and freshness.
 
 Database components can report `not_configured`, `invalid`, `not_checked`,
-`reachable`, `unavailable`, or `permission_denied`. The schema-index status
-remains `not_initialized` until indexing is implemented.
+`reachable`, `unavailable`, or `permission_denied`. The schema-index status can
+report `not_initialized`, `ready`, `stale`, `failed`, or `unavailable`.
+
+`ready` means the latest successful index fingerprint and semantic metadata
+digest match the current source and configured metadata. `stale` means an
+active index exists but must be refreshed before relying on it for retrieval.
 
 Health responses and startup logs never include passwords, API keys, connection
 URLs, stack traces, or business rows.
+
+## Schema Indexing
+
+Version-controlled semantic metadata lives under `schema_index/metadata`. The
+index command performs source introspection, deterministic document generation,
+LangChain embedding generation through OpenRouter, and atomic local index
+promotion. It never writes to the external source database.
+
+For direct development:
+
+```powershell
+cd backend
+uv run index-schema
+```
