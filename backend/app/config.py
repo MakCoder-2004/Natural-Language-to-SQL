@@ -14,6 +14,15 @@ from sqlalchemy.exc import ArgumentError
 DEFAULT_SOURCE_SCHEMA_SCOPE: Final[str] = "public"
 MAX_ALLOWED_CORRECTION_RETRIES: Final[int] = 2
 SYSTEM_SCHEMAS: Final[frozenset[str]] = frozenset({"information_schema", "pg_catalog", "pg_toast"})
+DEFAULT_DATABASE_CONNECT_TIMEOUT_SECONDS: Final[int] = 10
+DEFAULT_SOURCE_POOL_SIZE: Final[int] = 5
+DEFAULT_SOURCE_MAX_OVERFLOW: Final[int] = 10
+DEFAULT_SOURCE_POOL_TIMEOUT_SECONDS: Final[int] = 10
+DEFAULT_SOURCE_POOL_RECYCLE_SECONDS: Final[int] = 1800
+DEFAULT_INDEX_POOL_SIZE: Final[int] = 5
+DEFAULT_INDEX_MAX_OVERFLOW: Final[int] = 10
+DEFAULT_INDEX_POOL_TIMEOUT_SECONDS: Final[int] = 10
+DEFAULT_INDEX_POOL_RECYCLE_SECONDS: Final[int] = 1800
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,6 +65,15 @@ class Settings(BaseSettings):
     embedding_model: str | None = None
 
     source_schema_scope: str = DEFAULT_SOURCE_SCHEMA_SCOPE
+    database_connect_timeout_seconds: int = DEFAULT_DATABASE_CONNECT_TIMEOUT_SECONDS
+    source_pool_size: int = DEFAULT_SOURCE_POOL_SIZE
+    source_max_overflow: int = DEFAULT_SOURCE_MAX_OVERFLOW
+    source_pool_timeout_seconds: int = DEFAULT_SOURCE_POOL_TIMEOUT_SECONDS
+    source_pool_recycle_seconds: int = DEFAULT_SOURCE_POOL_RECYCLE_SECONDS
+    index_pool_size: int = DEFAULT_INDEX_POOL_SIZE
+    index_max_overflow: int = DEFAULT_INDEX_MAX_OVERFLOW
+    index_pool_timeout_seconds: int = DEFAULT_INDEX_POOL_TIMEOUT_SECONDS
+    index_pool_recycle_seconds: int = DEFAULT_INDEX_POOL_RECYCLE_SECONDS
     max_correction_retries: int = MAX_ALLOWED_CORRECTION_RETRIES
     max_returned_rows: int = 1000
     max_result_bytes: int = 5_000_000
@@ -70,11 +88,29 @@ class Settings(BaseSettings):
             raise ValueError("must be between 0 and 2")
         return value
 
-    @field_validator("max_returned_rows", "max_result_bytes", "query_timeout_seconds")
+    @field_validator(
+        "database_connect_timeout_seconds",
+        "source_pool_timeout_seconds",
+        "source_pool_recycle_seconds",
+        "index_pool_timeout_seconds",
+        "index_pool_recycle_seconds",
+        "max_returned_rows",
+        "max_result_bytes",
+        "query_timeout_seconds",
+    )
     @classmethod
     def validate_positive_limit(cls, value: int) -> int:
         if value <= 0:
             raise ValueError("must be greater than zero")
+        return value
+
+    @field_validator(
+        "source_pool_size", "source_max_overflow", "index_pool_size", "index_max_overflow"
+    )
+    @classmethod
+    def validate_non_negative_pool_value(cls, value: int) -> int:
+        if value < 0:
+            raise ValueError("must be zero or greater")
         return value
 
     @field_validator("openrouter_base_url")
@@ -88,7 +124,14 @@ class Settings(BaseSettings):
     def source_schema_names(self) -> tuple[str, ...]:
         """Return the configured comma-separated source schemas in stable order."""
 
-        return tuple(name.strip() for name in self.source_schema_scope.split(",") if name.strip())
+        names: list[str] = []
+        seen: set[str] = set()
+        for raw_name in self.source_schema_scope.split(","):
+            name = raw_name.strip()
+            if name and name not in seen:
+                names.append(name)
+                seen.add(name)
+        return tuple(names)
 
     @property
     def model_roles(self) -> tuple[tuple[str, str | None], ...]:

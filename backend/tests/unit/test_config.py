@@ -92,6 +92,15 @@ def test_source_and_index_urls_must_be_distinct() -> None:
         ("max_returned_rows", 0),
         ("max_result_bytes", -1),
         ("query_timeout_seconds", 0),
+        ("database_connect_timeout_seconds", 0),
+        ("source_pool_timeout_seconds", 0),
+        ("source_pool_recycle_seconds", 0),
+        ("index_pool_timeout_seconds", 0),
+        ("index_pool_recycle_seconds", 0),
+        ("source_pool_size", -1),
+        ("source_max_overflow", -1),
+        ("index_pool_size", -1),
+        ("index_max_overflow", -1),
     ],
 )
 def test_limits_are_bounded(field: str, value: int) -> None:
@@ -113,3 +122,9 @@ def test_secret_values_are_masked_by_pydantic() -> None:
 
     assert "source_password" not in repr(settings)
     assert "test-key" not in repr(settings)
+
+
+def test_schema_scope_removes_duplicate_names_without_reordering() -> None:
+    settings = make_settings(source_schema_scope="analytics, reporting, analytics")
+
+    assert settings.source_schema_names == ("analytics", "reporting")
