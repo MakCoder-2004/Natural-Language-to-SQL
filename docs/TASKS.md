@@ -123,13 +123,13 @@ the configured schema scope, and generate a stable schema fingerprint.
 
 ### Checklist
 
-- [ ] Implement a dedicated source database connection service.
-- [ ] Implement a separate index database connection service.
-- [ ] Make source and index connection dependencies explicit and typed.
-- [ ] Verify source and index connections cannot be accidentally swapped.
-- [ ] Integrate LangChain's PostgreSQL SQL abstraction where appropriate.
-- [ ] Configure source connection pooling and cleanup.
-- [ ] Configure connection and query timeouts.
+- [x] Implement a dedicated source database connection service.
+- [x] Implement a separate index database connection service.
+- [x] Make source and index connection dependencies explicit and typed.
+- [x] Verify source and index connections cannot be accidentally swapped.
+- [x] Integrate LangChain's PostgreSQL SQL abstraction where appropriate.
+- [x] Configure source connection pooling and cleanup.
+- [x] Configure connection and query timeouts.
 - [ ] Implement configurable source schema scope filtering.
 - [ ] Exclude unintended PostgreSQL system schemas from the source scope.
 - [ ] Introspect source schemas and namespaces.

@@ -12,6 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.health import router as health_router
 from app.config import Settings, get_settings
+from app.database.errors import DatabaseServiceError
+from app.database.services import DatabaseServices, create_database_services
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,12 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
 
     settings = cast(Settings, application.state.settings)
     application.state.settings = settings
+    try:
+        database_services = create_database_services(settings)
+    except DatabaseServiceError as exc:
+        logger.warning("database_services_unavailable error_code=%s", type(exc).__name__)
+        database_services = DatabaseServices()
+    application.state.database_services = database_services
     issues = settings.configuration_issues()
     if issues:
         logger.warning(
@@ -31,7 +39,10 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         )
     else:
         logger.info("startup_configuration_valid")
-    yield
+    try:
+        yield
+    finally:
+        database_services.dispose()
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
