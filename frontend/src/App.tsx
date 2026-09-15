@@ -135,6 +135,15 @@ function App() {
             </div>
           ) : null}
           <WorkflowStatus response={state.response} activeAction={state.activeAction} />
+          {state.response?.error ? (
+            <div
+              className="mt-4 border-l-3 border-danger bg-surface-muted px-4 py-3 text-sm leading-[1.45] text-ink-muted"
+              role="alert"
+            >
+              <strong>Workflow failed.</strong> {state.response.error.message} (
+              {state.response.error.code})
+            </div>
+          ) : null}
           {state.response ? (
             <ClarificationPanel
               response={state.response}

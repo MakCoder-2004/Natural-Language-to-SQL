@@ -197,8 +197,20 @@ class DeterministicQueryWorkflow:
 
         self._answerable_workflow: Any = (
             RunnableLambda(self._retrieve_node)
-            | RunnableLambda(self._generate_node)
-            | RunnableLambda(self._validate_node)
+            | RunnableBranch(
+                (
+                    lambda state: state.state == QueryState.FAILED,
+                    RunnableLambda(lambda state: state),
+                ),
+                RunnableLambda(self._generate_node),
+            )
+            | RunnableBranch(
+                (
+                    lambda state: state.state == QueryState.FAILED,
+                    RunnableLambda(lambda state: state),
+                ),
+                RunnableLambda(self._validate_node),
+            )
             | RunnableBranch(
                 (
                     lambda state: state.state == QueryState.READY_FOR_REVIEW,

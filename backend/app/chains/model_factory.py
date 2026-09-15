@@ -36,7 +36,7 @@ def create_chat_model(settings: Settings, role: ModelRole) -> Any:
             api_key=api_key,
             base_url=settings.openrouter_base_url,
             timeout=settings.model_request_timeout_seconds,
-            max_retries=2,
+            max_retries=1,
             temperature=0,
             default_headers=default_headers or None,
         )

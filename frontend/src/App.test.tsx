@@ -245,4 +245,27 @@ describe("Milestone 10 application", () => {
     );
     expect(screen.getByRole("button", { name: /review question/i })).toBeEnabled();
   });
+
+  it("shows backend workflow failure details", async () => {
+    window.history.replaceState({}, "", "/");
+    const failedResponse = withChanges({
+      status: "FAILED",
+      sql_inspector: null,
+      validation: null,
+      error: {
+        code: "model_timeout",
+        message: "The SQL proposal could not be generated safely.",
+        details: { stage: "sql_generation" },
+      },
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(failedResponse)));
+    render(<App />);
+    fireEvent.change(screen.getByLabelText(/natural-language question/i), {
+      target: { value: "Who is the most loyal customer?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /review question/i }));
+
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/model_timeout/i));
+    expect(screen.getByRole("alert")).toHaveTextContent(/sql proposal could not be generated/i);
+  });
 });

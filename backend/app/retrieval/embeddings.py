@@ -81,7 +81,7 @@ def create_embedding_provider(settings: Settings) -> LangChainEmbeddingProvider:
             base_url=settings.openrouter_base_url,
             chunk_size=settings.embedding_batch_size,
             timeout=settings.embedding_request_timeout_seconds,
-            max_retries=2,
+            max_retries=1,
             tiktoken_enabled=False,
             check_embedding_ctx_length=False,
             default_headers=default_headers or None,
