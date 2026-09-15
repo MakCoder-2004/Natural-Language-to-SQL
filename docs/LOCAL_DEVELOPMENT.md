@@ -127,6 +127,12 @@ npm test
 npm run build
 ```
 
+The frontend design gallery is available at `http://localhost:5173/`. Open
+`/1` through `/10` to compare the ten design studies. Every route uses the same
+FastAPI query workflow. Set `VITE_API_BASE_URL` in the frontend environment when
+the backend is not running at `http://localhost:8000`; this variable contains a
+public API origin only and must never contain credentials.
+
 ## Health Semantics
 
 `GET /api/health` reports process availability, configuration state, source and
