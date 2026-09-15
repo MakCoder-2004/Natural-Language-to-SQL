@@ -185,6 +185,15 @@ describe("Milestone 10 application", () => {
     expect(screen.queryByRole("button", { name: /execute query/i })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /last quarter/i }));
     expect(screen.getByLabelText(/add context/i)).toHaveValue("Last quarter");
+    fireEvent.click(screen.getByRole("button", { name: /continue with this meaning/i }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "http://localhost:8000/api/query/query-1/clarify",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ clarification: "Last quarter" }),
+      }),
+    );
   });
 
   it("renders normalized result values as text and communicates truncation", async () => {

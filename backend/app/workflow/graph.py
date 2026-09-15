@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from dataclasses import replace
 from time import perf_counter
 from typing import Any, cast
 
@@ -101,11 +102,22 @@ class DeterministicQueryWorkflow:
             raise WorkflowError("Only a clarification-pending query can be resumed.")
         if not clarification_context.strip():
             raise WorkflowError("Clarification context cannot be empty.")
+        if state.analysis is None:
+            raise WorkflowError("The clarification-pending query has no analysis.")
         resumed = state.evolve(clarification_context=clarification_context)
         resumed = transition(resumed, QueryState.ANALYZING, reason="clarification received")
-        analyzed = self._analysis_node(resumed)
-        if analyzed.state != QueryState.SCHEMA_RETRIEVED:
-            return analyzed
+        # The user's response resolves the ambiguity; do not ask the same model
+        # to classify the already-clarified question a second time.
+        resolved_analysis = replace(
+            state.analysis,
+            classification="ANSWERABLE",
+            clarification_question=None,
+            clarification_choices=(),
+        )
+        analyzed = resumed.evolve(analysis=resolved_analysis)
+        analyzed = transition(
+            analyzed, QueryState.SCHEMA_RETRIEVED, reason="clarification resolved"
+        )
         return cast(QueryWorkflowState, self._answerable_workflow.invoke(analyzed))
 
     def edit_sql(self, state: QueryWorkflowState, sql: str) -> QueryWorkflowState:

@@ -243,7 +243,6 @@ def test_clarification_resumes_the_answerable_workflow() -> None:
     workflow = _workflow(_Analysis("CLARIFICATION_REQUIRED"))
     pending = workflow.run("which customers are best?")
 
-    workflow.analysis_service = _Analysis("ANSWERABLE")
     completed = workflow.resume_clarification(pending, "Highest total spending")
 
     assert completed.state == QueryState.READY_FOR_REVIEW
