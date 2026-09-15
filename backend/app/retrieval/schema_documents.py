@@ -378,6 +378,8 @@ class SchemaDocumentBuilder:
             "target_schema_name": target_schema_name,
             "target_relation_name": target_relation_name,
             "target_column_names": list(target_column_names),
+            "source_column_names": metadata.get("source_columns", []),
+            "constraint_name": metadata.get("constraint_name"),
         }
         identity_bytes = _canonical_json(identity)
         document_key = f"{category}:{hashlib.sha256(identity_bytes).hexdigest()}"

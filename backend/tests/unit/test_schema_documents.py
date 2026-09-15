@@ -57,6 +57,14 @@ def source_snapshot() -> SourceSchemaSnapshot:
                 target_columns=("Account ID",),
                 cardinality="many_to_one",
             ),
+            ForeignKeyMetadata(
+                name="event_name_account_fk",
+                source_columns=("Event Name",),
+                target_schema="Sales Data",
+                target_relation="Account Details",
+                target_columns=("Account ID",),
+                cardinality="many_to_one",
+            ),
         ),
     )
     return SourceSchemaSnapshot(
@@ -117,7 +125,8 @@ def test_builder_emits_rich_deterministic_documents(tmp_path: Path) -> None:
         "relationship",
         "semantic_concept",
     }
-    assert len(first.documents) == 8
+    assert len(first.documents) == 9
+    assert len({document.document_key for document in first.documents}) == len(first.documents)
     assert all(document.source_fingerprint == "sha256:fixture" for document in first.documents)
     assert all(document.document_version == "schema-document-v1" for document in first.documents)
     assert all(document.content_digest.startswith("sha256:") for document in first.documents)
