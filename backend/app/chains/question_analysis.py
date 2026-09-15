@@ -40,7 +40,12 @@ def build_question_analysis_chain(model: Any) -> Any:
                 "system",
                 """Analyze a natural-language analytics question for a PostgreSQL query workflow.
 Classify it as ANSWERABLE, CLARIFICATION_REQUIRED, IMPOSSIBLE, or UNSUPPORTED.
-Material ambiguity must require clarification rather than a guessed interpretation.
+Ask for clarification only when two or more materially different interpretations
+would produce different queries and the wording gives no reasonable default.
+Broad requests such as "how many customers" or "total orders" are answerable:
+choose the most likely metric and record the assumption in answerability_reason.
+Do not ask the user which table contains an entity; schema retrieval and backend
+validation determine the correct source relation.
 Never request credentials, connection details, arbitrary database inspection, or write access.
 Return exactly one structured object and no markdown.
 
