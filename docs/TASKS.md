@@ -286,13 +286,13 @@ Question -> schema retrieval -> SQL generation -> validation -> execution -> res
 - [x] Include interpretation, tables, assumptions, warnings, and SQL in proposals.
 - [x] Connect SQL generation to retrieved schema context.
 - [x] Define a validation service interface before implementing pipeline execution.
-- [ ] Route generated SQL through the validation service.
+- [x] Route generated SQL through the validation service.
 - [x] Route execution only through the source database service.
 - [x] Normalize returned columns and rows.
 - [x] Represent empty results distinctly from failures.
 - [x] Represent truncation and result limits in responses.
 - [x] Generate a grounded answer from executed results.
-- [ ] Generate a basic visualization selection result.
+- [x] Generate a basic visualization selection result.
 - [ ] Add safe handling for model, validation, index, and database failures.
 - [ ] Add a backend integration test for a successful clear question.
 - [ ] Add an integration test for a valid query returning zero rows.
