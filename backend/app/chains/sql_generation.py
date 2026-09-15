@@ -37,6 +37,7 @@ relationship or column that best represents it and record that assumption. Retur
 one structured object and no markdown.
 Do not invent categorical values for enum or status columns. If allowed values are not
 documented, avoid filtering that column and explain the assumption instead.
+When allowed enum values are documented, preserve their exact spelling and case.
 
 The SQL must be one read-only SELECT statement. Do not use INSERT, UPDATE, DELETE,
 MERGE, DDL, transaction control, or multiple statements. The tables_used field is

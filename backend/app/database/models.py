@@ -33,6 +33,7 @@ class SourceColumnMetadata:
     udt_name: str | None = None
     identity: str | None = None
     generated: str | None = None
+    enum_values: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

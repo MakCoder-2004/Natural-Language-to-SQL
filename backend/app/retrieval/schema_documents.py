@@ -130,6 +130,8 @@ class SchemaDocumentBuilder:
             details = (
                 f"{_quote_identifier(column.name)} ({column.data_type}, {_nullability(column)})"
             )
+            if column.enum_values:
+                details += f"; allowed values: {', '.join(column.enum_values)}"
             if column_description:
                 details += f" - {column_description}"
             lines.append(f"- {details}")
@@ -195,6 +197,8 @@ class SchemaDocumentBuilder:
             _append_optional(
                 lines, "Description", semantic_column.description if semantic_column else None
             )
+            if column.enum_values:
+                lines.append(f"Allowed values: {', '.join(column.enum_values)}")
             if column.comment and (semantic_column is None or semantic_column.description is None):
                 _append_optional(lines, "Database comment", column.comment)
             _append_optional(lines, "Default", column.default)

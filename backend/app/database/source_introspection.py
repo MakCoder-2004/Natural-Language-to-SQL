@@ -35,7 +35,18 @@ from app.database.models import (
 )
 from app.database.source_connection import SourceDatabase
 
-_METADATA_VERSION = 2
+_METADATA_VERSION = 3
+
+_ENUM_VALUES_SQL = text(
+    """
+    SELECT e.enumlabel
+    FROM pg_catalog.pg_type AS t
+    JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
+    JOIN pg_catalog.pg_enum AS e ON e.enumtypid = t.oid
+    WHERE n.nspname = :schema_name AND t.typname = :type_name
+    ORDER BY e.enumsortorder
+    """
+)
 
 _SCHEMA_COMMENTS_SQL = text(
     """
@@ -208,6 +219,9 @@ class SourceIntrospector:
                         raw_column,
                         position,
                         column_comments.get((relation_name, _text(raw_column.get("name")) or "")),
+                        enum_values=_enum_values(
+                            connection, schema_name, _text(raw_column.get("udt_name"))
+                        ),
                     )
                     for position, raw_column in enumerate(raw_columns, start=1)
                 ),
@@ -303,7 +317,11 @@ def _read_comments(
 
 
 def _column_metadata(
-    raw_column: Mapping[str, Any], fallback_position: int, comment: str | None
+    raw_column: Mapping[str, Any],
+    fallback_position: int,
+    comment: str | None,
+    *,
+    enum_values: tuple[str, ...] = (),
 ) -> SourceColumnMetadata:
     raw_name = _text(raw_column.get("name")) or ""
     raw_position = raw_column.get("ordinal_position")
@@ -321,6 +339,20 @@ def _column_metadata(
         udt_name=_text(raw_column.get("udt_name")),
         identity=_text(identity),
         generated=_text(generated),
+        enum_values=enum_values,
+    )
+
+
+def _enum_values(
+    connection: Connection, schema_name: str, type_name: str | None
+) -> tuple[str, ...]:
+    if not type_name:
+        return ()
+    return tuple(
+        str(row[0])
+        for row in connection.execute(
+            _ENUM_VALUES_SQL, {"schema_name": schema_name, "type_name": type_name}
+        ).all()
     )
 
 
