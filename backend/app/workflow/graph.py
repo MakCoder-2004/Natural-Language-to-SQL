@@ -242,10 +242,34 @@ class DeterministicQueryWorkflow:
 
         return (
             RunnableLambda(self._execution_gate_node)
-            | RunnableLambda(self._execute_node)
-            | RunnableLambda(self._answer_node)
-            | RunnableLambda(self._visualization_node)
-            | RunnableLambda(self._complete_node)
+            | RunnableBranch(
+                (
+                    lambda state: state.state == QueryState.FAILED,
+                    RunnableLambda(lambda state: state),
+                ),
+                RunnableLambda(self._execute_node),
+            )
+            | RunnableBranch(
+                (
+                    lambda state: state.state == QueryState.FAILED,
+                    RunnableLambda(lambda state: state),
+                ),
+                RunnableLambda(self._answer_node),
+            )
+            | RunnableBranch(
+                (
+                    lambda state: state.state == QueryState.FAILED,
+                    RunnableLambda(lambda state: state),
+                ),
+                RunnableLambda(self._visualization_node),
+            )
+            | RunnableBranch(
+                (
+                    lambda state: state.state == QueryState.FAILED,
+                    RunnableLambda(lambda state: state),
+                ),
+                RunnableLambda(self._complete_node),
+            )
         )
 
     def _request(self, question: str) -> QueryRequest:
