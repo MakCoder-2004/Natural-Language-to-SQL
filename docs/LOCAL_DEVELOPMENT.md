@@ -7,12 +7,12 @@
 | Service | Responsibility | Data boundary |
 |---|---|---|
 | `frontend` | React development application | Receives only the public FastAPI URL. |
-| `backend` | FastAPI application and future orchestration | Owns all database URLs, model configuration, and secrets. |
+| `backend` | FastAPI application, workflow, indexing, and query execution | Owns all database URLs, model configuration, and secrets. |
 | `index-db` | Local PostgreSQL + pgvector service | Stores schema-index metadata, documents, and embeddings only. |
 
 The source PostgreSQL database is intentionally external to Compose. It is not
-replaced by a local seeded business database. Future source introspection and
-read-only execution will use the same configured source database.
+replaced by a local seeded business database. Source introspection and read-only
+execution use the same configured source database.
 
 ## Configuration
 
@@ -111,8 +111,8 @@ uv run pytest tests/integration -m integration
 After a successful index run, the internal
 `HybridSchemaRetrievalService` combines vector and PostgreSQL keyword signals
 from `index-db`. Retrieval requires a ready index whose source fingerprint and
-semantic metadata digest match the current source. It does not expose a public
-query route yet and it never queries business rows for schema retrieval.
+semantic metadata digest match the current source. It never queries business
+rows for schema retrieval.
 
 Frontend setup and checks use npm scripts from `frontend/package.json`:
 

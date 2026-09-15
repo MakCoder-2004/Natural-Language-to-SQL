@@ -1,19 +1,14 @@
 # Safe Schema-aware SQL Analytics
 
-This project is a production-oriented natural-language-to-SQL analytics
-application for an existing PostgreSQL database. It retrieves relevant schema
-metadata, proposes SQL, validates it deterministically, and executes only
-approved read-only queries.
+This project is a production-oriented natural-language-to-SQL analytics MVP for
+an existing PostgreSQL database. It retrieves only relevant schema metadata,
+proposes SQL through a bounded LangChain/LCEL workflow, validates it with
+deterministic application code, and executes only approved read-only queries.
 
-The project is currently at Milestone 5: Basic SQL Pipeline. The repository
-contains isolated source and index database services, scoped PostgreSQL metadata
-introspection, read-only access verification, versioned semantic metadata,
-deterministic schema documents, LangChain-backed OpenRouter embeddings,
-repeatable pgvector indexing, index freshness reporting, and bounded hybrid
-retrieval, structured SQL generation, conservative deterministic validation,
-source-only execution, normalized results, grounded answers, and deterministic
-visualization selection. Public query APIs, correction, approval, and edited-SQL
-workflows are added in later milestones.
+The MVP demonstrates schema-aware retrieval, structured model outputs, controlled
+tool use, SQL safety validation, human approval, source-only execution, grounded
+answers, result visualization, testing, evaluation, and structured observability.
+It is intentionally not an unrestricted database agent.
 
 ## Architecture Boundary
 
@@ -141,16 +136,24 @@ Retrieval limits are backend-only settings. They cannot be supplied by a model
 or browser client. The retrieval service is an internal backend capability; a
 public natural-language query endpoint is introduced in a later milestone.
 
-## Basic SQL Pipeline
+## Query Workflow
 
-Milestone 5 composes the internal `BasicSqlPipelineService` from question input
-through retrieval, structured SQL proposal generation, current source-schema
-validation, source-only execution, result normalization, grounded answer
-generation, and visualization selection. The model never selects a connection or
-authorizes SQL. The exact SQL must pass deterministic validation before execution.
+The public FastAPI workflow accepts a natural-language question and keeps its
+state backend-side. Clear questions proceed through schema retrieval, structured
+SQL generation, deterministic validation, approval when required, source-only
+execution, result normalization, grounded answer generation, and visualization
+selection. Ambiguous questions stop for clarification rather than guessing.
 
-See [Basic SQL Pipeline](docs/pipeline/basic-sql-pipeline.md) for the internal
-contracts and current scope.
+Review Mode is the default. It exposes the proposed SQL, interpretation, tables,
+assumptions, validation state, and warnings before execution. Auto Mode may run
+without an interactive approval step, but it still passes the same backend
+validation, read-only, timeout, row, and result-size checks.
+
+SQL edited in the browser is untrusted input. The backend revalidates the exact
+edited SQL immediately before execution.
+
+See [Backend API](docs/api/backend-api.md), [Review and Approval](docs/workflows/review-and-approval.md),
+and [Basic SQL Pipeline](docs/pipeline/basic-sql-pipeline.md) for the contracts.
 
 ## Model Configuration
 
@@ -192,9 +195,29 @@ npm test
 npm run build
 ```
 
-## Scope
+## Documentation
 
-Milestone 5 does not include the public query API, correction workflow, approval
-workflow, or React query experience. Representative test schemas and rows belong only under
-`backend/tests/fixtures/` and are created inside disposable integration
-containers.
+- [Local development and Compose](docs/LOCAL_DEVELOPMENT.md)
+- [Architecture](docs/architecture/README.md)
+- [Security](docs/security/README.md)
+- [Schema retrieval](docs/retrieval/README.md)
+- [Backend API](docs/api/backend-api.md)
+- [Review and approval workflow](docs/workflows/review-and-approval.md)
+- [Evaluation](docs/evaluation/README.md)
+- [Demo walkthrough](docs/demo/README.md)
+- [Model replacement](docs/models/model-replacement.md)
+
+## MVP Scope and Limitations
+
+The source database is deployment-specific and must be provisioned externally
+with a dedicated read-only role. The repository does not create, migrate, seed,
+or modify a production business schema. Representative schemas and rows are
+test-only fixtures in disposable integration environments.
+
+Query workflow state is currently held in backend process memory and is lost on
+restart. The MVP does not provide multi-user authorization, additional database
+engines, query-plan explanations, semantic metric governance, LangSmith tracing,
+or autonomous agent behavior beyond the bounded tools.
+
+See [Deferred Enhancements](docs/TASKS.md#deferred-enhancements) for the full
+out-of-scope list.
