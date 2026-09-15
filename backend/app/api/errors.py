@@ -8,9 +8,11 @@ from app.database.errors import (
     DatabasePermissionError,
     DatabaseUnavailableError,
     IndexReadinessError,
+    ModelServiceError,
     NoRelevantSchemaError,
     QueryExecutionError,
     QueryTimeoutError,
+    QueryValidationError,
 )
 from app.services.query_store import QueryNotFoundError
 from app.workflow.errors import WorkflowError
@@ -35,6 +37,10 @@ def error_response(
         status = 502
     elif isinstance(error, NoRelevantSchemaError):
         status = 422
+    elif isinstance(error, QueryValidationError):
+        status = 422
+    elif isinstance(error, ModelServiceError):
+        status = 502
     elif isinstance(error, WorkflowError):
         status = 409
 
@@ -55,6 +61,8 @@ def _safe_message(code: str) -> str:
         "query_timeout": "The source query exceeded the configured time limit.",
         "query_execution_error": "The source query could not be completed.",
         "no_relevant_schema": "No relevant source schema was found for this question.",
+        "query_validation_error": "The SQL statement was rejected by the safety policy.",
+        "model_error": "The configured model service could not complete the request.",
         "internal_error": "The request could not be completed safely.",
     }
     return messages.get(code, "The request could not be completed safely.")
