@@ -1,47 +1,66 @@
-# Frontend Design Studies
+# Frontend Design System
 
-Milestone 10 provides ten selectable visual systems for the same safe query
-workflow. The routes intentionally share behavior and API state but vary in
-layout, typography, surface treatment, status presentation, and palette.
+The production interface uses one visual language: the **Cartographic Field
+Guide**. The design treats a query as an analyst's expedition through source
+schema, backend policy, SQL evidence, and returned data.
+
+## Visual Language
+
+- Map cream canvas: `#EEE7D7`.
+- Warm report surface: `#F8F3E8`.
+- Ink blue text: `#243C4A`.
+- Moss for successful or grounded states: `#4C6651`.
+- Clay for primary action and important signals: `#B86C50`.
+- Ochre for warnings and field notes: `#C4A35A`.
+- Fog for recessed controls and metadata: `#D5D8CE`.
+
+Typography combines the Design 1 type system with the Design 10 field-guide
+composition:
+
+- `Space Grotesk` for page titles and section headings.
+- `DM Sans` for controls, body copy, labels, and explanations.
+- `DM Mono` for SQL, query IDs, hashes, and technical metadata.
+
+The interface uses restrained dashed survey borders, report sheets, route-like
+workflow markers, and field-note callouts. Decorative map language never
+pretends to be a complete database schema or replaces the actual backend data.
 
 ## Routes
 
-| Route | Design | Direction |
-| --- | --- | --- |
-| `/1` | Swiss Analytical Desk | Editorial grid, rules, and red research signals |
-| `/2` | Functional Brutalism | Raw blocks, visible structure, and direct labels |
-| `/3` | Frosted Research Console | Restrained translucent layers and depth |
-| `/4` | Clay Analytics Workspace | Tactile surfaces and pressed controls |
-| `/5` | Archival Terminal | Amber workstation and session-record language |
-| `/6` | Monochrome Data Atlas | High-contrast hierarchy without color dependence |
-| `/7` | Desk Ledger | Paper, tabs, reports, and audit stamps |
-| `/8` | Bento Schema Observatory | Deliberate tiles for query artifacts |
-| `/9` | Art Deco Query Bureau | Geometric framing and restrained brass |
-| `/10` | Cartographic Field Guide | Survey-sheet composition and schema terrain |
+| Route | Purpose |
+| --- | --- |
+| `/` | Canonical production workspace |
+| `/10` | Replaced with `/` for the former Design 10 URL |
+| `/library` | Internal component and token preview |
 
-The root route `/` is a design gallery. The design selector inside every
-workspace switches between routes without changing the product behavior.
+The former `/1` through `/9` design routes and the design-selection gallery have
+been removed.
 
-## Shared Product Rules
+## Component Library
 
-- Review Mode is the default.
+Reusable primitives live under `frontend/src/design-system`:
+
+- `Panel`
+- `SectionHeader`
+- `Button`
+- `StatusBadge`
+- `Notice`
+- `TagList`
+- `CodeBlock`
+- `EmptyState`
+
+Foundation tokens live in `tokens.css`, reset behavior lives in `reset.css`,
+and shared composition styles live in `globals.css`. Query-specific components
+compose these primitives rather than defining private status or surface systems.
+
+The `/library` route renders the same production primitives used by the query
+workspace. It is the reference page for extending the system.
+
+## Safety Rules
+
+- Review Mode remains the default.
 - Auto Mode remains subject to backend validation and resource limits.
-- Edited SQL is visibly marked as untrusted and is sent to the backend for full
-  revalidation.
+- Edited SQL is visibly untrusted and is revalidated by FastAPI.
 - Frontend validation indicators never authorize execution.
-- Results are rendered as text data, never as HTML.
-- Query history is current-session only and stores no credentials.
-- Database credentials, connection URLs, model keys, and database selection are
-  backend-only.
-
-## Research References
-
-- [Brutalist Websites](https://brutalistwebsites.com/) informed the raw
-  structural direction of Design 2.
-- [IBM Carbon Design System](https://carbondesignsystem.com/) informed the
-  treatment of enterprise controls, data states, and accessible interaction.
-- [Nielsen Norman Group data-table guidance](https://www.nngroup.com/articles/data-tables/)
-  informed table scanning, horizontal overflow, row comparison, and result
-  state handling.
-
-These references informed principles rather than copied layouts or assets.
+- Returned database values are rendered as text.
+- Credentials and connection details remain backend-only.

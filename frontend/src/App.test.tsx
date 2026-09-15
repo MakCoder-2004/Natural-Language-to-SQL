@@ -59,16 +59,28 @@ describe("Milestone 10 application", () => {
   beforeEach(() => window.history.replaceState({}, "", "/"));
   afterEach(() => vi.restoreAllMocks());
 
-  it("presents ten independently addressable design routes", () => {
+  it("renders the field guide as the canonical production workspace", () => {
+    render(<App />);
+    expect(screen.getByRole("heading", { name: /ask the source/i })).toBeInTheDocument();
+    expect(screen.getByText(/cartographic field guide/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/switch design/i)).not.toBeInTheDocument();
+  });
+
+  it("normalizes the former design route to the canonical root", () => {
+    window.history.replaceState({}, "", "/10");
+    render(<App />);
+    expect(screen.getByRole("heading", { name: /ask the source/i })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/");
+  });
+
+  it("exposes the shared component library preview", () => {
+    window.history.replaceState({}, "", "/library");
     render(<App />);
     expect(
-      screen.getByRole("heading", { name: /choose a working atmosphere/i }),
+      screen.getByRole("heading", { name: /field guide component library/i }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("link")).toHaveLength(10);
-    expect(screen.getByRole("link", { name: /functional brutalism/i })).toHaveAttribute(
-      "href",
-      "/2",
-    );
+    expect(screen.getByRole("button", { name: /primary action/i })).toBeInTheDocument();
+    expect(screen.getByText(/the exact sql was rejected/i)).toBeInTheDocument();
   });
 
   it("completes the first Review Mode step using backend response data", async () => {
