@@ -74,7 +74,16 @@ def _validate_invariants(state: QueryWorkflowState) -> None:
             raise WorkflowInvariantError("Review state requires passing SQL validation.")
         if state.validated_sql_hash != state.validation.sql_hash:
             raise WorkflowInvariantError("Review state requires the current validated SQL hash.")
+        if state.proposal is None or state.proposal.sql_hash != state.validated_sql_hash:
+            raise WorkflowInvariantError("Review state requires validation for the current SQL.")
+        if (
+            state.approval_sql_hash is not None
+            and state.approval_sql_hash != state.validated_sql_hash
+        ):
+            raise WorkflowInvariantError("Review state cannot retain stale approval.")
     if state.state == QueryState.APPROVED:
+        if state.execution_mode != "REVIEW":
+            raise WorkflowInvariantError("Only Review Mode queries can be approved.")
         if state.approval_sql_hash is None or state.approval_sql_hash != state.validated_sql_hash:
             raise WorkflowInvariantError("Approval must bind to the exact validated SQL hash.")
     if state.state == QueryState.EXECUTING:
@@ -82,6 +91,8 @@ def _validate_invariants(state: QueryWorkflowState) -> None:
             raise WorkflowInvariantError("Execution requires passing SQL validation.")
         if state.validated_sql_hash != state.validation.sql_hash:
             raise WorkflowInvariantError("Execution requires the current validated SQL hash.")
+        if state.execution_mode == "REVIEW" and state.approval_sql_hash != state.validated_sql_hash:
+            raise WorkflowInvariantError("Review Mode execution requires exact SQL approval.")
     if state.state == QueryState.COMPLETED:
         if state.result is None or state.result.executed_sql_hash != state.validated_sql_hash:
             raise WorkflowInvariantError("Completion requires the executed validated SQL.")

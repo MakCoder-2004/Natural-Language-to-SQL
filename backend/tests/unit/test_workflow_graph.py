@@ -145,10 +145,28 @@ def test_review_mode_stops_before_execution_and_can_be_approved() -> None:
 
     assert ready.state == QueryState.READY_FOR_REVIEW
     assert ready.result is None
-    approved = workflow.approve(ready)
+    approved = workflow.approve(
+        ready, sql_version=ready.proposal.sql_hash if ready.proposal else None
+    )
     completed = workflow.execute_approved(approved)
     assert completed.state == QueryState.COMPLETED
     assert completed.result is not None
+
+
+def test_approval_rejects_stale_sql_version() -> None:
+    workflow = _workflow()
+    ready = workflow.run("count values")
+
+    with pytest.raises(WorkflowError, match="stale"):
+        workflow.approve(ready, sql_version="stale-version")
+
+
+def test_approval_rejects_auto_mode() -> None:
+    workflow = _workflow()
+    state = workflow.run("count values", execution_mode="AUTO")
+
+    with pytest.raises(WorkflowError, match="review-ready"):
+        workflow.approve(state)
 
 
 def test_initial_proposal_is_preserved_when_sql_is_edited() -> None:

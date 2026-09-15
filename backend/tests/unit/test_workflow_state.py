@@ -140,3 +140,32 @@ def test_sql_inspector_reports_stale_approval() -> None:
     assert inspector is not None
     assert inspector.approved is False
     assert inspector.stale_approval is True
+
+
+def test_review_state_rejects_stale_approval() -> None:
+    from app.models.sql import SqlProposal, SqlValidationResult, sql_hash
+
+    proposal = SqlProposal.create(sql="SELECT 1", interpretation="One")
+    validation = SqlValidationResult(
+        True,
+        proposal.sql,
+        sql_hash(proposal.sql),
+        (),
+        (),
+        (),
+        (),
+        (),
+        (),
+        True,
+        True,
+    )
+    state = _state().evolve(
+        state=QueryState.VALIDATING,
+        proposal=proposal,
+        validation=validation,
+        validated_sql_hash=validation.sql_hash,
+        approval_sql_hash=sql_hash("SELECT 2"),
+    )
+
+    with pytest.raises(WorkflowInvariantError, match="stale approval"):
+        transition(state, QueryState.READY_FOR_REVIEW, reason="invalid review state")

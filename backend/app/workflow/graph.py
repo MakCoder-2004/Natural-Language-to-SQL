@@ -127,13 +127,23 @@ class DeterministicQueryWorkflow:
         edited = transition(edited, QueryState.EDITED, reason="user edited SQL")
         return self._validate_node(edited)
 
-    def approve(self, state: QueryWorkflowState) -> QueryWorkflowState:
+    def approve(
+        self, state: QueryWorkflowState, *, sql_version: str | None = None
+    ) -> QueryWorkflowState:
         """Approve the exact validated SQL version in Review Mode."""
 
         if state.state != QueryState.READY_FOR_REVIEW:
             raise WorkflowError("Only a review-ready query can be approved.")
         if state.execution_mode != "REVIEW" or state.validation is None:
             raise WorkflowError("Approval is available only for a validated Review Mode query.")
+        if (
+            not state.validation.passed
+            or state.proposal is None
+            or state.validated_sql_hash != state.proposal.sql_hash
+        ):
+            raise WorkflowError("Approval requires validation for the current SQL version.")
+        if sql_version is not None and sql_version != state.validated_sql_hash:
+            raise WorkflowError("The supplied SQL version is stale.")
         approved = state.evolve(approval_sql_hash=state.validation.sql_hash)
         return transition(approved, QueryState.APPROVED, reason="review approval received")
 
