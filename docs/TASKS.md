@@ -787,6 +787,40 @@ These checks must be complete before declaring the MVP finished.
 - [x] Docker Compose and local setup are reproducible.
 - [x] Architecture, security, retrieval, evaluation, and README documentation are complete.
 
+---
+
+## Milestone 14 - Single-User Runtime Database Settings
+
+### Objective
+
+Allow a local single-user operator to configure an external PostgreSQL source
+through the frontend while preserving backend-only credentials and source/index
+separation.
+
+### Checklist
+
+- [x] Create a dedicated Milestone 14 branch.
+- [x] Add runtime source connection test and save endpoints.
+- [x] Verify PostgreSQL URL and approved schema scope.
+- [x] Verify read-only source permissions before saving.
+- [x] Reject the local index database as a source.
+- [x] Keep runtime credentials in backend memory only.
+- [x] Clear query state after source replacement or disconnect.
+- [x] Preserve the previous source when a replacement or index operation fails.
+- [x] Add runtime database settings UI at `/settings`.
+- [x] Add read-only role setup instructions.
+- [x] Add connection, disconnect, and schema-index controls.
+- [x] Add backend and frontend safety tests.
+- [x] Document the single-user runtime scope and limitations.
+
+### Exit Criteria
+
+- [x] A local operator can test and save a read-only external PostgreSQL source.
+- [x] The frontend never stores or receives the full connection secret.
+- [x] Source introspection and generated SQL use the active source binding.
+- [x] The local index database remains a separate metadata and embedding store.
+- [x] Invalid, unsafe, and failed connections are rejected safely.
+
 ## Deferred Enhancements
 
 - [ ] Explicit semantic metric layer.

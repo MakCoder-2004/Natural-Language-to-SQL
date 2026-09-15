@@ -30,6 +30,7 @@ pretends to be a complete database schema or replaces the actual backend data.
 | Route | Purpose |
 | --- | --- |
 | `/` | Canonical production workspace |
+| `/settings` | Single-user source database and application settings |
 | `/10` | Replaced with `/` for the former Design 10 URL |
 
 The former `/1` through `/9` design routes and the design-selection gallery have
@@ -78,3 +79,5 @@ Use the following rules when extending the interface:
 - Frontend validation indicators never authorize execution.
 - Returned database values are rendered as text.
 - Credentials and connection details remain backend-only.
+- The settings connection URL is treated as an ephemeral backend secret and is
+  never persisted by the browser.

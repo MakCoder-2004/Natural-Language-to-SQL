@@ -100,6 +100,43 @@ Reports process, configuration, source database, index database, schema-index,
 read-only permission, and model configuration status without exposing secrets,
 connection URLs, stack traces, or business rows.
 
+## Runtime Database Settings
+
+The local single-user settings workflow can replace the external source binding
+for the running backend process. The local index database binding is never
+replaceable through these endpoints.
+
+### `POST /api/settings/database/test`
+
+Tests a PostgreSQL URL and schema scope without saving it. The backend performs
+schema introspection and verifies that the role is read-only. The response
+contains safe database identity, schema, relation-count, and permission fields;
+it never contains the submitted URL or password.
+
+```json
+{
+  "url": "postgresql+psycopg://reader:<password>@db.example.com:5432/analytics",
+  "schema_scope": "public"
+}
+```
+
+### `POST /api/settings/database`
+
+Tests and saves a valid source binding in backend memory. Existing in-memory
+query state is cleared because approvals and schema context belong to the
+previous source. A failed save leaves the previous source unchanged.
+
+### `DELETE /api/settings/database`
+
+Disconnects the runtime source and clears in-memory query state. It does not
+delete or modify the local schema index database.
+
+### `POST /api/settings/database/index`
+
+Indexes the currently saved source into the local `index-db`. Generated
+business SQL continues to target only the active external source. Indexing must
+complete successfully before retrieval can use the new source schema.
+
 ## Query Response
 
 Query responses contain:
@@ -158,3 +195,5 @@ never returned to normal users.
   and resource-limit violations remain blocked by deterministic validation.
 - The local schema-index database is never an execution target.
 - Database credentials and model API keys remain backend-only.
+- Runtime database URLs submitted through settings are held only in backend
+  memory and are never returned, logged, or stored in browser storage.

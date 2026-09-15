@@ -47,6 +47,12 @@ docker compose up --build
 The frontend is available at `http://localhost:5173` and the backend health
 endpoint is available at `http://localhost:8000/api/health`.
 
+Open `http://localhost:5173/settings` to configure a single runtime source
+database from the browser. The settings page tests the PostgreSQL URL and
+read-only role before saving it in backend memory, and can start the schema
+index refresh. This is single-user local configuration; the connection is
+cleared when the backend restarts and is never stored in browser storage.
+
 Run the initial schema index from another terminal:
 
 ```powershell
