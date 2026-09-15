@@ -68,4 +68,6 @@ def test_chat_factory_uses_ollama_without_openrouter_credentials(monkeypatch: An
 
     assert captured["model"] == "qwen3.5:4b"
     assert captured["base_url"] == "http://ollama:11434"
+    assert captured["reasoning"] is False
+    assert captured["format"] == "json"
     assert isinstance(model, FakeChatOllama)

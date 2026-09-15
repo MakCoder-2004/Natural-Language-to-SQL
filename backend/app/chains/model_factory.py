@@ -29,6 +29,8 @@ def create_chat_model(settings: Settings, role: ModelRole) -> Any:
                 model=model_name,
                 base_url=settings.ollama_base_url,
                 temperature=0,
+                reasoning=False,
+                format="json",
                 client_kwargs={"timeout": settings.model_request_timeout_seconds},
             )
             emit_event(
