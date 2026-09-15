@@ -1,4 +1,10 @@
-import { isQueryResponse, type ApiError, type QueryResponse } from "./types";
+import {
+  isQueryResponse,
+  type ApiError,
+  type DatabaseConnectionResponse,
+  type DatabaseIndexResponse,
+  type QueryResponse,
+} from "./types";
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(
   /\/$/,
@@ -84,5 +90,24 @@ export const queryApi = {
       if (!isQueryResponse(response))
         throw new Error("The API returned an invalid query response.");
       return response;
+    }),
+};
+
+export const settingsApi = {
+  testDatabase: (url: string, schemaScope: string) =>
+    request<DatabaseConnectionResponse>("/api/settings/database/test", {
+      method: "POST",
+      body: JSON.stringify({ url, schema_scope: schemaScope }),
+    }),
+  saveDatabase: (url: string, schemaScope: string) =>
+    request<DatabaseConnectionResponse>("/api/settings/database", {
+      method: "POST",
+      body: JSON.stringify({ url, schema_scope: schemaScope }),
+    }),
+  disconnectDatabase: () => request<void>("/api/settings/database", { method: "DELETE" }),
+  indexDatabase: () =>
+    request<DatabaseIndexResponse>("/api/settings/database/index", {
+      method: "POST",
+      body: JSON.stringify({}),
     }),
 };

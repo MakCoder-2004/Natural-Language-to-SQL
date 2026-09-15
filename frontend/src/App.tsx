@@ -5,6 +5,7 @@ import { ClarificationPanel } from "./components/ClarificationPanel";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { QueryComposer } from "./components/QueryComposer";
 import { ResultsPanel } from "./components/ResultsPanel";
+import { SettingsPage } from "./components/SettingsPage";
 import { SqlInspector } from "./components/SqlInspector";
 import { WorkflowStatus } from "./components/WorkflowStatus";
 import { initialQueryState, queryReducer } from "./state/queryState";
@@ -12,12 +13,30 @@ import { initialQueryState, queryReducer } from "./state/queryState";
 function App() {
   const [state, dispatch] = useReducer(queryReducer, initialQueryState);
   const [historyOpen, setHistoryOpen] = useState(true);
+  const [route, setRoute] = useState(window.location.pathname);
 
   useEffect(() => {
     if (window.location.pathname === "/10") {
       window.history.replaceState({}, "", "/");
     }
   }, []);
+
+  useEffect(() => {
+    const onPopState = () => setRoute(window.location.pathname);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  if (route === "/settings") {
+    return (
+      <SettingsPage
+        onBack={() => {
+          window.history.pushState({}, "", "/");
+          setRoute("/");
+        }}
+      />
+    );
+  }
 
   const run = async (action: string, request: () => ReturnType<typeof queryApi.create>) => {
     dispatch({ type: "start", action });
@@ -52,7 +71,19 @@ function App() {
         >
           <span className="font-bold text-accent-strong">Schema terrain</span>
           <div className="flex items-center gap-4 max-[720px]:flex-wrap">
-            <span>FastAPI / PostgreSQL / read-only</span>
+            <div className="flex items-center gap-4">
+              <span>FastAPI / PostgreSQL / read-only</span>
+              <button
+                type="button"
+                className="rounded-control border border-border bg-transparent px-3 py-2 text-xs font-bold uppercase tracking-[0.06em] text-ink-muted transition-colors hover:border-accent hover:text-accent-strong focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2"
+                onClick={() => {
+                  window.history.pushState({}, "", "/settings");
+                  setRoute("/settings");
+                }}
+              >
+                Settings
+              </button>
+            </div>
             {!historyOpen ? (
               <button
                 type="button"

@@ -106,6 +106,25 @@ export type ApiError = Error & {
   queryId?: string;
 };
 
+export type DatabaseConnectionResponse = {
+  connected: boolean;
+  host: string;
+  port: number | null;
+  database: string | null;
+  user: string | null;
+  schemas: string[];
+  relation_count: number;
+  read_only_verified: boolean;
+};
+
+export type DatabaseIndexResponse = {
+  status: string;
+  source_fingerprint: string;
+  document_count: number;
+  embedding_count: number;
+  indexed_at: string | null;
+};
+
 export function isQueryResponse(value: unknown): value is QueryResponse {
   if (!value || typeof value !== "object") return false;
   const response = value as Partial<QueryResponse>;

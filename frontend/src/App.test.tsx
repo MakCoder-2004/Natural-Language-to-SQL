@@ -114,6 +114,30 @@ describe("Milestone 10 application", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("opens the runtime database settings page with safe setup guidance", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+    expect(
+      screen.getByRole("heading", { name: /point the field guide at your source/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/postgresql connection url/i)).toHaveAttribute("type", "password");
+    expect(
+      screen.getByText(/dedicated login with only connection, schema usage, and select access/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/backend-controlled settings/i)).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/settings");
+  });
+
+  it("returns to the workspace from settings", () => {
+    window.history.replaceState({}, "", "/settings");
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: /back to workspace/i }));
+
+    expect(screen.getByRole("heading", { name: /ask the source/i })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/");
+  });
+
   it("completes the first Review Mode step using backend response data", async () => {
     window.history.replaceState({}, "", "/1");
     const fetchMock = vi.fn().mockResolvedValue(response(readyResponse));
