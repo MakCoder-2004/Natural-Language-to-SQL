@@ -350,10 +350,10 @@ A state-driven LCEL workflow with a controlled agent and bounded tools.
 
 ### Exit Criteria
 
-- [ ] The core workflow is composable, state-driven, and inspectable.
-- [ ] Ambiguous questions stop before SQL generation.
-- [ ] The controlled agent cannot directly access databases or secrets.
-- [ ] The workflow has no hidden execution route outside the application gates.
+- [x] The core workflow is composable, state-driven, and inspectable.
+- [x] Ambiguous questions stop before SQL generation.
+- [x] The controlled agent cannot directly access databases or secrets.
+- [x] The workflow has no hidden execution route outside the application gates.
 
 ---
 
