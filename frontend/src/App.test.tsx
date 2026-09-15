@@ -101,7 +101,7 @@ describe("Milestone 10 application", () => {
       expect(screen.getByText(readyResponse.sql_inspector.sql)).toBeInTheDocument(),
     );
     expect(screen.getByText(/backend validated/i)).toBeInTheDocument();
-    expect(screen.getByText(/review mode is the default/i)).toBeInTheDocument();
+    expect(screen.getByRole("contentinfo")).toHaveTextContent(/review mode is the default/i);
     expect(screen.queryByText(/database password|connection url/i)).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       "http://localhost:8000/api/query",
