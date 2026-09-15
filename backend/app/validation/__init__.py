@@ -1,0 +1,1 @@
+"""Deterministic SQL validation boundaries."""

@@ -285,7 +285,7 @@ Question -> schema retrieval -> SQL generation -> validation -> execution -> res
 - [x] Define structured SQL proposal output.
 - [x] Include interpretation, tables, assumptions, warnings, and SQL in proposals.
 - [x] Connect SQL generation to retrieved schema context.
-- [ ] Define a validation service interface before implementing pipeline execution.
+- [x] Define a validation service interface before implementing pipeline execution.
 - [ ] Route generated SQL through the validation service.
 - [ ] Route execution only through the source database service.
 - [ ] Normalize returned columns and rows.
