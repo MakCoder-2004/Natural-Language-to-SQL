@@ -1,0 +1,176 @@
+from __future__ import annotations
+
+from typing import Any
+
+import pytest
+from app.config import Settings
+from app.database.models import (
+    DatabaseIdentity,
+    RelationMetadata,
+    SchemaMetadata,
+    SourceSchemaSnapshot,
+)
+from app.database.services import DatabaseServices
+from app.database.source_connection import SourceDatabase
+from app.models.results import GroundedAnswer, QueryResult
+from app.models.retrieval import RetrievalDiagnostics, RetrievalLimits, RetrievalResult
+from app.models.sql import SqlProposal, SqlValidationResult, sql_hash
+from app.models.visualization import VisualizationSelection
+from app.workflow.errors import WorkflowError
+from app.workflow.graph import DeterministicQueryWorkflow
+from app.workflow.state import QueryState, QuestionAnalysis
+from sqlalchemy import create_engine
+
+
+def _settings(**overrides: Any) -> Settings:
+    return Settings(max_question_length=100, _env_file=None, **overrides)  # type: ignore[call-arg]
+
+
+def _retrieval() -> RetrievalResult:
+    limits = RetrievalLimits(1, 1, 1, 1, 1, 1, 1, 1, 100, 0.2, 0.6, 0.4, 60)
+    diagnostics = RetrievalDiagnostics(0, 0, 0, 0, 0, 0, 0, {}, limits)
+    return RetrievalResult((), (), (), (), "context", "fingerprint", diagnostics)
+
+
+def _snapshot() -> SourceSchemaSnapshot:
+    return SourceSchemaSnapshot(
+        DatabaseIdentity("source", "readonly"),
+        ("main",),
+        (SchemaMetadata("main", (RelationMetadata("main", "values_table", "table", ()),)),),
+        "fingerprint",
+    )
+
+
+class _Analysis:
+    def __init__(self, classification: str = "ANSWERABLE") -> None:
+        self.classification = classification
+
+    def analyze(self, question: str, clarification_context: str | None) -> QuestionAnalysis:
+        return QuestionAnalysis(
+            classification=self.classification,  # type: ignore[arg-type]
+            requested_metric="count",
+            entities=(),
+            filters=(),
+            time_range=None,
+            grouping=(),
+            ordering=None,
+            limit=None,
+            likely_source_tables=(),
+            ambiguous_terms=("best",) if self.classification == "CLARIFICATION_REQUIRED" else (),
+            clarification_question="What does best mean?"
+            if self.classification == "CLARIFICATION_REQUIRED"
+            else None,
+            clarification_choices=("Highest total spending", "Most orders")
+            if self.classification == "CLARIFICATION_REQUIRED"
+            else (),
+            answerability_reason="Test classification",
+            warnings=(),
+        )
+
+
+class _Retrieval:
+    def retrieve(self, question: str) -> RetrievalResult:
+        return _retrieval()
+
+
+class _Generation:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def generate(self, question: str, retrieval: RetrievalResult) -> SqlProposal:
+        self.calls += 1
+        return SqlProposal.create(sql="SELECT 1", interpretation="Returns one.")
+
+
+class _Validation:
+    def validate(self, sql: str, snapshot: SourceSchemaSnapshot) -> SqlValidationResult:
+        return SqlValidationResult(True, sql, sql_hash(sql), (), (), (), (), (), (), True, True)
+
+
+class _Executor:
+    def execute(self, binding: Any, validation: SqlValidationResult) -> QueryResult:
+        return QueryResult(("value",), ((1,),), 1, 1, False, 1, (), validation.sql_hash)
+
+
+class _Answer:
+    def generate(self, question: str, sql: str, result: QueryResult) -> GroundedAnswer:
+        return GroundedAnswer("One.", (), "The query returned one row.")
+
+
+class _Visualization:
+    def select(self, result: QueryResult) -> VisualizationSelection:
+        return VisualizationSelection("kpi", None, (), None, "single metric")
+
+
+def _workflow(analysis: Any | None = None, **settings: Any) -> DeterministicQueryWorkflow:
+    services = DatabaseServices(SourceDatabase(create_engine("sqlite://"), ("main",)), None)
+    return DeterministicQueryWorkflow(
+        _settings(**settings),
+        services,
+        analysis_service=analysis or _Analysis(),
+        retrieval_service=_Retrieval(),
+        sql_generation_service=_Generation(),
+        validation_service=_Validation(),
+        executor=_Executor(),
+        answer_service=_Answer(),
+        visualization_selector=_Visualization(),  # type: ignore[arg-type]
+        snapshot_provider=lambda _: _snapshot(),
+    )
+
+
+def test_review_mode_stops_before_execution_and_can_be_approved() -> None:
+    workflow = _workflow()
+
+    ready = workflow.run("count values")
+
+    assert ready.state == QueryState.READY_FOR_REVIEW
+    assert ready.result is None
+    approved = workflow.approve(ready)
+    completed = workflow.execute_approved(approved)
+    assert completed.state == QueryState.COMPLETED
+    assert completed.result is not None
+
+
+def test_auto_mode_completes_only_after_validation() -> None:
+    completed = _workflow().run("count values", execution_mode="AUTO")
+
+    assert completed.state == QueryState.COMPLETED
+    assert completed.validation is not None and completed.validation.passed
+
+
+def test_ambiguous_question_stops_before_retrieval_and_sql() -> None:
+    state = _workflow(_Analysis("CLARIFICATION_REQUIRED")).run("which customers are best?")
+
+    assert state.state == QueryState.CLARIFICATION_REQUIRED
+    assert state.proposal is None
+    assert state.retrieval is None
+    assert state.analysis is not None
+    assert state.analysis.clarification_choices
+
+
+def test_clarification_resumes_the_answerable_workflow() -> None:
+    workflow = _workflow(_Analysis("CLARIFICATION_REQUIRED"))
+    pending = workflow.run("which customers are best?")
+
+    workflow.analysis_service = _Analysis("ANSWERABLE")
+    completed = workflow.resume_clarification(pending, "Highest total spending")
+
+    assert completed.state == QueryState.READY_FOR_REVIEW
+    assert completed.clarification_context == "Highest total spending"
+
+
+def test_impossible_question_fails_without_sql() -> None:
+    state = _workflow(_Analysis("IMPOSSIBLE")).run("drop all tables")
+
+    assert state.state == QueryState.FAILED
+    assert state.proposal is None
+    assert state.error is not None
+    assert state.error.code == "impossible"
+
+
+def test_workflow_result_requires_completion() -> None:
+    workflow = _workflow()
+    ready = workflow.run("count values")
+
+    with pytest.raises(WorkflowError):
+        workflow.result(ready)

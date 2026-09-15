@@ -330,23 +330,23 @@ A state-driven LCEL workflow with a controlled agent and bounded tools.
 - [x] Implement structured question analysis.
 - [x] Detect ambiguity before SQL generation.
 - [x] Define clarification choices and clarification state.
-- [ ] Prevent SQL generation while clarification is outstanding.
-- [ ] Compose analysis, retrieval, generation, validation, execution, and answer stages with LCEL.
+- [x] Prevent SQL generation while clarification is outstanding.
+- [x] Compose analysis, retrieval, generation, validation, execution, and answer stages with LCEL.
 - [x] Implement bounded `get_relevant_schema`.
 - [x] Implement bounded `generate_sql`.
 - [x] Implement bounded `execute_readonly_sql`.
 - [x] Ensure `get_relevant_schema` reads only the local index.
 - [x] Ensure `execute_readonly_sql` targets only the source database.
 - [x] Ensure tools receive no credentials or connection details.
-- [ ] Ensure the agent cannot mutate workflow state or bypass gates.
+- [x] Ensure the agent cannot mutate workflow state or bypass gates.
 - [x] Limit the agent to approved application tools.
 - [ ] Add structured model-output parsing and missing-field validation.
 - [ ] Implement regeneration behavior through the workflow state.
 - [ ] Implement graceful handling for impossible and unsupported questions.
-- [ ] Add tests for valid questions and state transitions.
-- [ ] Add tests for ambiguous questions.
-- [ ] Add tests for impossible questions.
-- [ ] Add tests proving the agent cannot access credentials or arbitrary connections.
+- [x] Add tests for valid questions and state transitions.
+- [x] Add tests for ambiguous questions.
+- [x] Add tests for impossible questions.
+- [x] Add tests proving the agent cannot access credentials or arbitrary connections.
 
 ### Exit Criteria
 
