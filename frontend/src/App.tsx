@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from "react";
+import "./index.css";
 import { queryApi } from "./api/client";
 import { ClarificationPanel } from "./components/ClarificationPanel";
 import { DesignGallery } from "./components/DesignGallery";
