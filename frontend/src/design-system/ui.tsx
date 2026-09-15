@@ -6,7 +6,10 @@ export function Panel({
   ...props
 }: { children: ReactNode; className?: string } & HTMLAttributes<HTMLElement>) {
   return (
-    <section className={`ui-panel ${className}`} {...props}>
+    <section
+      className={`rounded-panel border border-border bg-surface shadow-panel ${className}`}
+      {...props}
+    >
       {children}
     </section>
   );
@@ -22,10 +25,14 @@ export function SectionHeader({
   children?: ReactNode;
 }) {
   return (
-    <div className="ui-section-header">
+    <div className="flex items-center justify-between gap-4">
       <div>
-        {eyebrow ? <div className="section-kicker">{eyebrow}</div> : null}
-        <h2>{title}</h2>
+        {eyebrow ? (
+          <div className="mb-2 text-xs font-bold uppercase tracking-[0.13em] text-accent-strong">
+            {eyebrow}
+          </div>
+        ) : null}
+        <h2 className="font-display text-lg font-semibold tracking-[-0.04em]">{title}</h2>
       </div>
       {children}
     </div>
@@ -54,7 +61,20 @@ export function StatusBadge({
   state: "ready" | "pending" | "warning" | "danger" | "neutral";
   children: ReactNode;
 }) {
-  return <span className={`ui-status ui-status-${state}`}>{children}</span>;
+  const colors = {
+    ready: "text-success",
+    pending: "text-warning",
+    warning: "text-warning",
+    danger: "text-danger",
+    neutral: "text-ink-muted",
+  };
+  return (
+    <span
+      className={`inline-flex w-fit rounded-pill border border-current px-3 py-2 text-xs font-bold uppercase tracking-[0.07em] ${colors[state]}`}
+    >
+      {children}
+    </span>
+  );
 }
 
 export function Notice({
@@ -66,7 +86,18 @@ export function Notice({
   children: ReactNode;
 } & HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`ui-notice ui-notice-${tone}`} {...props}>
+    <div
+      className={`border-l-3 border-border-strong bg-surface-muted px-4 py-3 text-ink-muted leading-[1.5] ${
+        tone === "warning"
+          ? "border-warning"
+          : tone === "danger"
+            ? "border-danger"
+            : tone === "success"
+              ? "border-success"
+              : ""
+      }`}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -74,15 +105,28 @@ export function Notice({
 
 export function TagList({ items }: { items: string[] }) {
   return (
-    <ul className="ui-tag-list">
-      {items.length ? items.map((item) => <li key={item}>{item}</li>) : <li>None reported</li>}
+    <ul className="flex flex-wrap gap-2">
+      {items.length ? (
+        items.map((item) => (
+          <li
+            key={item}
+            className="rounded-control border border-border px-3 py-2 text-sm text-ink-muted"
+          >
+            {item}
+          </li>
+        ))
+      ) : (
+        <li className="rounded-control border border-border px-3 py-2 text-sm text-ink-muted">
+          None reported
+        </li>
+      )}
     </ul>
   );
 }
 
 export function CodeBlock({ children }: { children: ReactNode }) {
   return (
-    <pre className="ui-code-block">
+    <pre className="overflow-x-auto bg-code-background p-5 font-code text-sm leading-[1.65] whitespace-pre-wrap">
       <code>{children}</code>
     </pre>
   );
@@ -90,7 +134,7 @@ export function CodeBlock({ children }: { children: ReactNode }) {
 
 export function EmptyState({ title, detail }: { title: string; detail: string }) {
   return (
-    <div className="ui-empty-state">
+    <div className="grid gap-2 border border-dashed border-border p-8 text-center text-ink-muted">
       <strong>{title}</strong>
       <span>{detail}</span>
     </div>

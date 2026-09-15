@@ -1,3 +1,2 @@
 @import "./design-system/tokens.css";
-@import "./design-system/reset.css";
-@import "./design-system/globals.css";
+@import "tailwindcss";

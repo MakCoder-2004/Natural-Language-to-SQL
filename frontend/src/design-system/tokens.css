@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
-:root {
+@theme {
   --color-canvas: #eee7d7;
   --color-surface: #f8f3e8;
   --color-surface-raised: #fffaf0;
@@ -26,6 +26,7 @@
   --text-lg: 1.3rem;
   --text-xl: 2rem;
   --text-display: clamp(2.35rem, 5vw, 4.4rem);
+  --text-display--line-height: 0.96;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
