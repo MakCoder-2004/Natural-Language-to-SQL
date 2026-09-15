@@ -537,47 +537,61 @@ the complete Review Mode and Auto Mode journeys.
 
 ### Checklist
 
-- [ ] Create the React application shell and route structure.
-- [ ] Create a typed or validated FastAPI API client.
-- [ ] Implement natural-language query input.
-- [ ] Preserve the question while clarification is requested.
-- [ ] Implement loading states for every asynchronous query action.
-- [ ] Implement safe user-facing error states.
-- [ ] Implement execution mode selection with Review Mode as the default.
-- [ ] Implement clarification panel or modal.
-- [ ] Disable execution actions while clarification is outstanding.
-- [ ] Implement SQL Inspector component.
-- [ ] Display exact SQL proposal.
-- [ ] Display interpretation, assumptions, tables, validation, and warnings.
-- [ ] Display read-only, source-scope, multi-statement, and resource-limit status.
-- [ ] Implement SQL editor for Review Mode.
-- [ ] Clearly state that edited SQL is revalidated by the backend.
-- [ ] Implement approve and execute actions.
-- [ ] Implement regeneration action.
-- [ ] Implement results table with normalized columns and rows.
-- [ ] Implement empty-result state.
-- [ ] Implement truncation and pagination indication.
-- [ ] Render returned values safely as data.
-- [ ] Implement grounded answer panel separate from SQL proposal text.
-- [ ] Implement conditional chart components for suitable result shapes.
-- [ ] Implement current-session query history.
-- [ ] Show query ID, short question, status, execution mode, and timestamp when available.
-- [ ] Prevent frontend-only validation indicators from authorizing execution.
-- [ ] Ensure the frontend never receives or stores database credentials.
-- [ ] Ensure the frontend communicates only with FastAPI.
-- [ ] Make the main workflow usable on desktop and mobile layouts.
-- [ ] Add component tests for query input, loading, errors, clarification, and SQL Inspector.
-- [ ] Add component tests for editing, approval, Auto Mode, and regeneration.
-- [ ] Add component tests for table, empty, truncated, and chart results.
-- [ ] Add component tests for current-session history.
-- [ ] Add a frontend integration test for the primary Review Mode journey.
+- [x] Create the React application shell and route structure.
+- [x] Create a typed or validated FastAPI API client.
+- [x] Implement natural-language query input.
+- [x] Preserve the question while clarification is requested.
+- [x] Implement loading states for every asynchronous query action.
+- [x] Implement safe user-facing error states.
+- [x] Implement execution mode selection with Review Mode as the default.
+- [x] Implement clarification panel or modal.
+- [x] Disable execution actions while clarification is outstanding.
+- [x] Implement SQL Inspector component.
+- [x] Display exact SQL proposal.
+- [x] Display interpretation, assumptions, tables, validation, and warnings.
+- [x] Display read-only, source-scope, multi-statement, and resource-limit status.
+- [x] Implement SQL editor for Review Mode.
+- [x] Clearly state that edited SQL is revalidated by the backend.
+- [x] Implement approve and execute actions.
+- [x] Implement regeneration action.
+- [x] Implement results table with normalized columns and rows.
+- [x] Implement empty-result state.
+- [x] Implement truncation and pagination indication.
+- [x] Render returned values safely as data.
+- [x] Implement grounded answer panel separate from SQL proposal text.
+- [x] Implement conditional chart components for suitable result shapes.
+- [x] Implement current-session query history.
+- [x] Show query ID, short question, status, execution mode, and timestamp when available.
+- [x] Prevent frontend-only validation indicators from authorizing execution.
+- [x] Ensure the frontend never receives or stores database credentials.
+- [x] Ensure the frontend communicates only with FastAPI.
+- [x] Make the main workflow usable on desktop and mobile layouts.
+- [x] Add component tests for query input, loading, errors, clarification, and SQL Inspector.
+- [x] Add component tests for editing, approval, Auto Mode, and regeneration.
+- [x] Add component tests for table, empty, truncated, and chart results.
+- [x] Add component tests for current-session history.
+- [x] Add a frontend integration test for the primary Review Mode journey.
 
 ### Exit Criteria
 
-- [ ] A user can complete the full query, clarification, review, approval, execution, and answer flow.
-- [ ] Auto Mode is visible and understandable without weakening backend safeguards.
-- [ ] The UI handles loading, empty, truncated, validation, and failure states.
-- [ ] The application works on desktop and mobile layouts.
+- [x] A user can complete the full query, clarification, review, approval, execution, and answer flow.
+- [x] Auto Mode is visible and understandable without weakening backend safeguards.
+- [x] The UI handles loading, empty, truncated, validation, and failure states.
+- [x] The application works on desktop and mobile layouts.
+
+### Design Polish Checklist
+
+- [x] Remove the detached upper navigation header and preserve system context in-flow.
+- [x] Reduce hero typography and compact supporting copy.
+- [x] Redesign current-session history as one semantic surface with query metadata.
+- [x] Align Review Mode and Auto Mode controls with accessible pressed states and compact sizing.
+- [x] Keep workflow progress on one horizontal sequence with mobile overflow.
+- [x] Keep safety explanations in the query workflow and SQL inspector rather than a separate rail.
+- [x] Expand the Query History column for readable session context.
+- [x] Remove the obsolete footer from the production workspace.
+- [x] Remove the public component-library route and document the design system in Markdown.
+- [x] Use Tailwind utilities and theme tokens for production frontend styling.
+- [x] Verify formatting, linting, typechecking, tests, production build, and browser smoke behavior.
 
 ---
 
