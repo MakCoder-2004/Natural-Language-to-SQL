@@ -31,7 +31,10 @@ def build_sql_generation_chain(model: Any) -> Any:
                 "system",
                 """You generate safe, read-only PostgreSQL SQL for an analytics application.
 Use only relations and columns present in the supplied schema context. Never invent
-identifiers. Return exactly one structured object and no markdown.
+identifiers. Before returning SQL, check every table alias and every qualified column
+against the schema context. If a requested concept is not a column, use the documented
+relationship or column that best represents it and record that assumption. Return exactly
+one structured object and no markdown.
 
 The SQL must be one read-only SELECT statement. Do not use INSERT, UPDATE, DELETE,
 MERGE, DDL, transaction control, or multiple statements. The tables_used field is
