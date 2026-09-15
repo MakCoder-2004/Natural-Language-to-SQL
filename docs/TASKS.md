@@ -325,11 +325,11 @@ A state-driven LCEL workflow with a controlled agent and bounded tools.
 
 ### Checklist
 
-- [ ] Define the complete query state model.
-- [ ] Define valid query states and allowed transitions.
-- [ ] Implement structured question analysis.
-- [ ] Detect ambiguity before SQL generation.
-- [ ] Define clarification choices and clarification state.
+- [x] Define the complete query state model.
+- [x] Define valid query states and allowed transitions.
+- [x] Implement structured question analysis.
+- [x] Detect ambiguity before SQL generation.
+- [x] Define clarification choices and clarification state.
 - [ ] Prevent SQL generation while clarification is outstanding.
 - [ ] Compose analysis, retrieval, generation, validation, execution, and answer stages with LCEL.
 - [ ] Implement bounded `get_relevant_schema`.
