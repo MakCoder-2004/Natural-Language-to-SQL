@@ -16,6 +16,7 @@ from app.database.errors import (
     DatabasePermissionError,
     DatabaseSeparationError,
     DatabaseUnavailableError,
+    QueryExecutionError,
     QueryTimeoutError,
 )
 
@@ -53,6 +54,8 @@ class SourceDatabase:
                 raise DatabasePermissionError(
                     "The source database role is not authorized."
                 ) from exc
+            if _is_query_error(exc):
+                raise QueryExecutionError("The source query could not be executed.") from exc
             raise DatabaseUnavailableError("The source database operation failed.") from exc
         except SQLAlchemyError as exc:
             raise DatabaseUnavailableError("The source database operation failed.") from exc
@@ -102,6 +105,13 @@ def _is_statement_timeout(error: DBAPIError) -> bool:
     original = error.orig
     sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
     return sqlstate == "57014"
+
+
+def _is_query_error(error: DBAPIError) -> bool:
+    """Recognize SQL/data errors that do not indicate a broken database."""
+
+    sqlstate = getattr(error.orig, "sqlstate", None) or getattr(error.orig, "pgcode", None)
+    return isinstance(sqlstate, str) and sqlstate[:2] in {"22", "42"}
 
 
 def create_source_database(settings: Settings) -> SourceDatabase:
