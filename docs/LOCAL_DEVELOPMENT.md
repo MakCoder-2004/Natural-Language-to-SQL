@@ -128,8 +128,9 @@ npm run build
 ```
 
 The canonical field-guide workspace is available at `http://localhost:5173/`.
-The former `/10` route redirects to `/`; `/library` opens the internal component
-library and token preview. Set `VITE_API_BASE_URL` in the frontend environment when
+The former `/10` route redirects to `/`. The component and token reference is
+maintained in `docs/design/frontend-designs.md`; there is no public library route.
+Set `VITE_API_BASE_URL` in the frontend environment when
 the backend is not running at `http://localhost:8000`; this variable contains a
 public API origin only and must never contain credentials.
 

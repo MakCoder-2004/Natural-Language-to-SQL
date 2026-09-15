@@ -31,14 +31,13 @@ pretends to be a complete database schema or replaces the actual backend data.
 | --- | --- |
 | `/` | Canonical production workspace |
 | `/10` | Replaced with `/` for the former Design 10 URL |
-| `/library` | Internal component and token preview |
 
 The former `/1` through `/9` design routes and the design-selection gallery have
 been removed.
 
 ## Component Library
 
-Reusable primitives live under `frontend/src/design-system`:
+Reusable Tailwind-based primitives live under `frontend/src/design-system`:
 
 - `Panel`
 - `SectionHeader`
@@ -49,12 +48,22 @@ Reusable primitives live under `frontend/src/design-system`:
 - `CodeBlock`
 - `EmptyState`
 
-Foundation tokens live in `tokens.css`, reset behavior lives in `reset.css`,
-and shared composition styles live in `globals.css`. Query-specific components
-compose these primitives rather than defining private status or surface systems.
+Tailwind is loaded through the Vite plugin in `frontend/vite.config.ts`. Theme
+tokens live in `tokens.css` as Tailwind `@theme` values, and feature components
+compose utility classes rather than defining private CSS selectors. There is no
+public component-library route; this Markdown document is the reference for
+extending the system.
 
-The `/library` route renders the same production primitives used by the query
-workspace. It is the reference page for extending the system.
+Use the following rules when extending the interface:
+
+- Prefer existing theme utilities such as `bg-canvas`, `text-ink`, `border-border`,
+  and `font-display`.
+- Keep layout, responsive behavior, focus states, and status styling in JSX
+  utility classes.
+- Add a new token to `tokens.css` before introducing a repeated arbitrary value.
+- Keep production components free of custom stylesheet selectors.
+- Preserve the distinction between moss success, clay action, ochre warning, and
+  danger failure states.
 
 ## Safety Rules
 
