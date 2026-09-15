@@ -431,7 +431,11 @@ class DeterministicQueryWorkflow:
             current = self._generate_node(
                 transition(current, QueryState.SQL_GENERATED, reason="regenerate corrected SQL")
             )
+            if current.state == QueryState.FAILED:
+                return current
             current = self._validate_node(current)
+            if current.state == QueryState.FAILED:
+                return current
         return current
 
     def _execution_gate_node(self, state: QueryWorkflowState) -> QueryWorkflowState:

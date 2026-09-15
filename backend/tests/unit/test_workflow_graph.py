@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 from app.config import Settings
+from app.database.errors import ModelServiceError
 from app.database.models import (
     DatabaseIdentity,
     RelationMetadata,
@@ -91,6 +92,17 @@ class _Correction:
         validation_errors: tuple[str, ...],
     ) -> SqlProposal:
         return SqlProposal.create(sql="SELECT 1", interpretation="Corrected proposal.")
+
+
+class _FailingCorrection:
+    def correct(
+        self,
+        question: str,
+        retrieval: RetrievalResult,
+        sql: str,
+        validation_errors: tuple[str, ...],
+    ) -> SqlProposal:
+        raise ModelServiceError("correction model failed")
 
 
 class _Validation:
@@ -301,6 +313,27 @@ def test_validation_correction_exhaustion_never_attempts_a_third_retry() -> None
     assert state.error is not None and state.error.code == "correction_exhausted"
     assert state.correction_attempts == 2
     assert validation.calls == 3
+
+
+def test_correction_failure_stays_failed_without_invalid_transition() -> None:
+    workflow = DeterministicQueryWorkflow(
+        _settings(max_correction_retries=1),
+        DatabaseServices(SourceDatabase(create_engine("sqlite://"), ("main",)), None),
+        analysis_service=_Analysis(),
+        retrieval_service=_Retrieval(),
+        sql_generation_service=_Generation(),
+        sql_correction_service=_FailingCorrection(),
+        validation_service=_AlwaysInvalidValidation(),
+        executor=_Executor(),
+        answer_service=_Answer(),
+        visualization_selector=_Visualization(),  # type: ignore[arg-type]
+        snapshot_provider=lambda _: _snapshot(),
+    )
+
+    state = workflow.run("count values")
+
+    assert state.state == QueryState.FAILED
+    assert state.error is not None and state.error.code == "model_error"
 
 
 def test_edited_sql_returns_to_validation_and_review() -> None:
