@@ -83,7 +83,7 @@ def test_unknown_relation_and_column_are_rejected() -> None:
     unknown_column = validator.validate("SELECT missing FROM analytics.events", _snapshot())
 
     assert unknown_relation.blocking_errors == ("unknown_relation",)
-    assert unknown_column.blocking_errors == ("unknown_column",)
+    assert unknown_column.blocking_errors == ("unknown_column:missing",)
 
 
 def test_quoted_mixed_case_relation_is_validated_case_safely() -> None:

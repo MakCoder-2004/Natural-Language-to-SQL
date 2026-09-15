@@ -246,7 +246,8 @@ class SqlValidationService:
                 )
             ]
             if not matching_columns:
-                errors.append("unknown_column")
+                qualified_column = f"{column.table}.{column_name}" if column.table else column_name
+                errors.append(f"unknown_column:{qualified_column}")
                 continue
             if reference is None and len(matching_columns) > 1:
                 errors.append("ambiguous_column")
