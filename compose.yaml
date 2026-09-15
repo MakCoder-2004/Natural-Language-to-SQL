@@ -49,6 +49,18 @@ services:
       QUERY_TIMEOUT_SECONDS: ${QUERY_TIMEOUT_SECONDS:-30}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5173}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     depends_on:
       index-db:
         condition: service_healthy
@@ -63,7 +75,7 @@ services:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "5173:5173"
 
