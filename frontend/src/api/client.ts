@@ -2,6 +2,7 @@ import {
   isQueryResponse,
   type ApiError,
   type DatabaseConnectionResponse,
+  type DatabaseDiscoveryResponse,
   type DatabaseIndexResponse,
   type QueryResponse,
 } from "./types";
@@ -94,6 +95,11 @@ export const queryApi = {
 };
 
 export const settingsApi = {
+  discoverSchemas: (url: string) =>
+    request<DatabaseDiscoveryResponse>("/api/settings/database/discover", {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    }),
   testDatabase: (url: string, schemaScope: string) =>
     request<DatabaseConnectionResponse>("/api/settings/database/test", {
       method: "POST",

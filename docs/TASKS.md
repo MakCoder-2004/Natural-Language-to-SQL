@@ -801,6 +801,7 @@ separation.
 
 - [x] Create a dedicated Milestone 14 branch.
 - [x] Add runtime source connection test and save endpoints.
+- [x] Discover available non-system schemas from the supplied source URL.
 - [x] Verify PostgreSQL URL and approved schema scope.
 - [x] Verify read-only source permissions before saving.
 - [x] Reject the local index database as a source.

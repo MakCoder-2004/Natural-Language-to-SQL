@@ -9,7 +9,8 @@ type SettingsPageProps = {
 
 export function SettingsPage({ onBack }: SettingsPageProps) {
   const [url, setUrl] = useState("");
-  const [schemaScope, setSchemaScope] = useState("public");
+  const [schemaScope, setSchemaScope] = useState("");
+  const [discoveredSchemas, setDiscoveredSchemas] = useState<string[]>([]);
   const [connection, setConnection] = useState<DatabaseConnectionResponse | null>(null);
   const [index, setIndex] = useState<DatabaseIndexResponse | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -21,6 +22,11 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
     try {
       const result = await request();
       if (result && "host" in Object(result)) setConnection(result as DatabaseConnectionResponse);
+      if (result && "schemas" in Object(result)) {
+        const schemas = (result as { schemas: string[] }).schemas;
+        setDiscoveredSchemas(schemas);
+        if (!schemaScope && schemas.length === 1) setSchemaScope(schemas[0]);
+      }
       if (result && "source_fingerprint" in Object(result))
         setIndex(result as DatabaseIndexResponse);
       setMessage({ tone: "success", text: success });
@@ -93,6 +99,48 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
                     in browser storage.
                   </span>
                 </label>
+                <div className="grid gap-2 text-sm font-semibold">
+                  <span>Discover available schemas</span>
+                  <Button
+                    variant="quiet"
+                    className="w-fit"
+                    disabled={Boolean(busy) || !url.trim()}
+                    onClick={() =>
+                      void run(
+                        "discover",
+                        () => settingsApi.discoverSchemas(url),
+                        "Schemas discovered from the source database.",
+                      )
+                    }
+                  >
+                    {busy === "discover" ? "Scanning database…" : "Scan database schemas"}
+                  </Button>
+                  {discoveredSchemas.length ? (
+                    <div className="flex flex-wrap gap-2" aria-label="Discovered schemas">
+                      {discoveredSchemas.map((schema) => (
+                        <button
+                          key={schema}
+                          type="button"
+                          className="rounded-control border border-border px-3 py-2 text-xs font-code font-normal text-ink-muted hover:border-accent hover:text-accent-strong focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2"
+                          onClick={() =>
+                            setSchemaScope((current) =>
+                              current
+                                ? current
+                                    .split(",")
+                                    .map((item) => item.trim())
+                                    .includes(schema)
+                                  ? current
+                                  : `${current}, ${schema}`
+                                : schema,
+                            )
+                          }
+                        >
+                          + {schema}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
                 <label className="grid gap-2 text-sm font-semibold" htmlFor="schema-scope">
                   Approved schema scope
                   <input

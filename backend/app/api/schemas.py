@@ -74,6 +74,22 @@ class DatabaseConnectionRequest(ApiModel):
         return value
 
 
+class DatabaseDiscoveryRequest(ApiModel):
+    url: str = Field(min_length=1, max_length=2_000)
+
+    @field_validator("url")
+    @classmethod
+    def url_not_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("url cannot be blank")
+        return value
+
+
+class DatabaseDiscoveryResponse(ApiModel):
+    schemas: tuple[str, ...]
+
+
 class DatabaseConnectionResponse(ApiModel):
     connected: bool = True
     host: str

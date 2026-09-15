@@ -106,6 +106,19 @@ The local single-user settings workflow can replace the external source binding
 for the running backend process. The local index database binding is never
 replaceable through these endpoints.
 
+### `POST /api/settings/database/discover`
+
+Connects to the supplied PostgreSQL URL and reads PostgreSQL namespace metadata
+to return available non-system schemas. It does not save the connection or read
+business rows. The user selects one or more returned schemas before requesting
+the read-only test or save operation.
+
+```json
+{
+  "url": "postgresql+psycopg://reader:<password>@db.example.com:5432/analytics"
+}
+```
+
 ### `POST /api/settings/database/test`
 
 Tests a PostgreSQL URL and schema scope without saving it. The backend performs

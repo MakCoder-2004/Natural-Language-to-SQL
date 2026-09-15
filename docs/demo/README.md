@@ -41,7 +41,8 @@ docker compose run --rm backend index-schema
 
 1. Open `http://localhost:5173/settings`.
 2. Paste a PostgreSQL URL for the administrator-provisioned read-only role.
-3. Enter the approved schema scope.
+3. Select `Scan database schemas` and choose the approved schema or schemas
+   returned by PostgreSQL.
 4. Select `Test connection` and confirm read-only verification succeeds.
 5. Select `Save connection`, then `Index or refresh schema`.
 6. Return to the workspace and submit a question matching the connected schema.

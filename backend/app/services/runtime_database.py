@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from threading import RLock
 
 from pydantic import SecretStr
+from sqlalchemy import inspect
 from sqlalchemy.engine import URL, make_url
 
 from app.config import Settings
@@ -47,6 +48,22 @@ class RuntimeDatabaseManager:
         finally:
             candidate.dispose()
 
+    def discover_schemas(self, url: str) -> tuple[str, ...]:
+        """Read available non-system schema names from a candidate source."""
+
+        candidate, _ = self._candidate(url, "public", require_scope=False)
+        try:
+            with candidate.connect() as connection:
+                names = inspect(connection).get_schema_names()
+            return tuple(
+                name
+                for name in sorted(names)
+                if name not in {"information_schema", "pg_catalog", "pg_toast"}
+                and not name.startswith(("pg_temp_", "pg_toast_temp_"))
+            )
+        finally:
+            candidate.dispose()
+
     def save(self, url: str, schema_scope: str) -> SourceConnectionProfile:
         candidate, candidate_settings = self._candidate(url, schema_scope)
         try:
@@ -73,7 +90,9 @@ class RuntimeDatabaseManager:
             if previous is not None:
                 previous.dispose()
 
-    def _candidate(self, url: str, schema_scope: str) -> tuple[SourceDatabase, Settings]:
+    def _candidate(
+        self, url: str, schema_scope: str, *, require_scope: bool = True
+    ) -> tuple[SourceDatabase, Settings]:
         value = url.strip()
         if not value:
             raise DatabaseServiceError("A PostgreSQL connection URL is required.")
@@ -85,12 +104,12 @@ class RuntimeDatabaseManager:
             raise DatabaseServiceError("The connection URL must use PostgreSQL.")
         if parsed.host in {"index-db", "index_db"}:
             raise DatabasePermissionError("The local schema index cannot be used as a source.")
-        if not schema_scope.strip():
+        if require_scope and not schema_scope.strip():
             raise DatabaseServiceError("At least one source schema is required.")
         candidate_settings = self.settings.model_copy(
             update={
                 "source_database_url": SecretStr(value),
-                "source_schema_scope": schema_scope.strip(),
+                "source_schema_scope": schema_scope.strip() or "public",
             }
         )
         candidate = create_source_database(candidate_settings)

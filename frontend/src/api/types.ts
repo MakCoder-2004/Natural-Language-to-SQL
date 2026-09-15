@@ -117,6 +117,10 @@ export type DatabaseConnectionResponse = {
   read_only_verified: boolean;
 };
 
+export type DatabaseDiscoveryResponse = {
+  schemas: string[];
+};
+
 export type DatabaseIndexResponse = {
   status: string;
   source_fingerprint: string;

@@ -12,6 +12,8 @@ from app.api.errors import error_response
 from app.api.schemas import (
     DatabaseConnectionRequest,
     DatabaseConnectionResponse,
+    DatabaseDiscoveryRequest,
+    DatabaseDiscoveryResponse,
     DatabaseIndexResponse,
 )
 from app.services.indexing_service import IndexingService
@@ -19,6 +21,17 @@ from app.services.query_service import QueryService
 from app.services.runtime_database import RuntimeDatabaseManager
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
+
+
+@router.post("/database/discover", response_model=DatabaseDiscoveryResponse)
+def discover_database_schemas(
+    request: DatabaseDiscoveryRequest,
+    manager: Annotated[RuntimeDatabaseManager, Depends(get_runtime_database_manager)],
+) -> DatabaseDiscoveryResponse | JSONResponse:
+    try:
+        return DatabaseDiscoveryResponse(schemas=manager.discover_schemas(request.url))
+    except Exception as exc:
+        return error_response(exc)
 
 
 @router.post("/database/test", response_model=DatabaseConnectionResponse)

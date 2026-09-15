@@ -32,3 +32,15 @@ def test_settings_rejects_client_connection_metadata_fields() -> None:
         )
 
     assert response.status_code == 422
+
+
+def test_schema_discovery_accepts_only_postgres_urls() -> None:
+    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+    with TestClient(create_app(settings, DatabaseServices())) as client:
+        response = client.post(
+            "/api/settings/database/discover",
+            json={"url": "mysql://user:password@db/analytics"},
+        )
+
+    assert response.status_code == 422
+    assert "password" not in response.text
