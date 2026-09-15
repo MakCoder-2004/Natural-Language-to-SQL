@@ -107,6 +107,17 @@ class _AlwaysInvalidValidation:
         return SqlValidationResult.rejected(sql, errors=("unknown_column",))
 
 
+class _InvalidEditedValidation:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def validate(self, sql: str, snapshot: SourceSchemaSnapshot) -> SqlValidationResult:
+        self.calls += 1
+        if self.calls == 1:
+            return SqlValidationResult(True, sql, sql_hash(sql), (), (), (), (), (), (), True, True)
+        return SqlValidationResult.rejected(sql, errors=("unsafe_statement",))
+
+
 class _Executor:
     def execute(self, binding: Any, validation: SqlValidationResult) -> QueryResult:
         return QueryResult(("value",), ((1,),), 1, 1, False, 1, (), validation.sql_hash)
@@ -122,7 +133,11 @@ class _Visualization:
         return VisualizationSelection("kpi", None, (), None, "single metric")
 
 
-def _workflow(analysis: Any | None = None, **settings: Any) -> DeterministicQueryWorkflow:
+def _workflow(
+    analysis: Any | None = None,
+    validation_service: Any | None = None,
+    **settings: Any,
+) -> DeterministicQueryWorkflow:
     services = DatabaseServices(SourceDatabase(create_engine("sqlite://"), ("main",)), None)
     return DeterministicQueryWorkflow(
         _settings(**settings),
@@ -130,7 +145,7 @@ def _workflow(analysis: Any | None = None, **settings: Any) -> DeterministicQuer
         analysis_service=analysis or _Analysis(),
         retrieval_service=_Retrieval(),
         sql_generation_service=_Generation(),
-        validation_service=_Validation(),
+        validation_service=validation_service or _Validation(),
         executor=_Executor(),
         answer_service=_Answer(),
         visualization_selector=_Visualization(),  # type: ignore[arg-type]
@@ -283,3 +298,34 @@ def test_edited_sql_returns_to_validation_and_review() -> None:
     assert edited.state == QueryState.READY_FOR_REVIEW
     assert edited.proposal is not None and edited.proposal.sql == "SELECT 2"
     assert edited.validation is not None and edited.validation.sql == "SELECT 2"
+
+
+def test_edited_sql_requires_new_approval_before_execution() -> None:
+    workflow = _workflow()
+    ready = workflow.run("count values")
+
+    edited = workflow.edit_sql(ready, "SELECT 2")
+
+    assert edited.state == QueryState.READY_FOR_REVIEW
+    assert edited.approval_sql_hash is None
+    with pytest.raises(WorkflowError, match="approved"):
+        workflow.execute_approved(edited)
+
+
+def test_unsafe_edited_sql_never_reaches_execution() -> None:
+    workflow = _workflow(validation_service=_InvalidEditedValidation())
+    ready = workflow.run("count values")
+    edited = workflow.edit_sql(ready, "DROP TABLE values_table")
+
+    assert edited.state == QueryState.FAILED
+    assert edited.error is not None
+
+
+def test_edited_sql_cannot_retain_an_existing_approval() -> None:
+    workflow = _workflow()
+    ready = workflow.run("count values")
+    approved = workflow.approve(ready)
+
+    edited = workflow.edit_sql(approved.evolve(state=QueryState.READY_FOR_REVIEW), "SELECT 2")
+
+    assert edited.approval_sql_hash is None
