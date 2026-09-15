@@ -111,7 +111,9 @@ class SqlValidationService:
             for alias in with_expression.find_all(exp.TableAlias)
             if alias.name
         }
-        references, errors = self._relations(statement, source_relations, cte_names)
+        references, errors = self._relations(
+            statement, source_relations, cte_names, source_snapshot_scope=source_snapshot.scope
+        )
         if errors:
             return SqlValidationResult.rejected(sql, errors=tuple(errors))
 
@@ -147,6 +149,7 @@ class SqlValidationService:
         statement: exp.Expression,
         source_relations: dict[tuple[str, str], RelationMetadata],
         cte_names: set[str],
+        source_snapshot_scope: tuple[str, ...],
     ) -> tuple[tuple[_RelationReference, ...], list[str]]:
         references: list[_RelationReference] = []
         errors: list[str] = []
@@ -158,7 +161,9 @@ class SqlValidationService:
             if table.catalog:
                 errors.append("index_database_reference")
                 continue
-            if schema_name and not any(schema_name.lower() == key[0] for key in source_relations):
+            if schema_name and schema_name.lower() not in {
+                name.lower() for name in source_snapshot_scope
+            }:
                 errors.append("disallowed_schema")
                 continue
             candidates = (
