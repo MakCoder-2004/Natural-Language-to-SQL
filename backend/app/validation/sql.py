@@ -159,9 +159,22 @@ class SqlValidationService:
             for reference in references
             if reference.alias is not None
         }
+        cte_columns = {
+            cte.alias.lower(): {
+                expression.alias_or_name.lower()
+                for expression in cte.this.expressions
+                if expression.alias_or_name
+            }
+            for with_expression in statement.find_all(exp.With)
+            for cte in with_expression.expressions
+        }
         for column in statement.find_all(exp.Column):
             column_name = column.name
             if column_name == "*":
+                continue
+            if column.table and column.table.lower() in cte_columns:
+                if column_name.lower() not in cte_columns[column.table.lower()]:
+                    errors.append("unknown_column")
                 continue
             reference = by_alias.get(column.table.lower()) or by_name.get(column.table.lower())
             candidates = (reference,) if reference is not None else references
