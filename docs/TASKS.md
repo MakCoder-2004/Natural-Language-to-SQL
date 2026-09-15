@@ -579,6 +579,18 @@ the complete Review Mode and Auto Mode journeys.
 - [x] The UI handles loading, empty, truncated, validation, and failure states.
 - [x] The application works on desktop and mobile layouts.
 
+### Design Polish Checklist
+
+- [x] Remove the detached upper navigation header and preserve system context in-flow.
+- [x] Reduce hero typography and compact supporting copy.
+- [x] Redesign current-session history as one semantic surface with query metadata.
+- [x] Align Review Mode and Auto Mode controls with accessible pressed states.
+- [x] Keep workflow progress on one horizontal sequence with mobile overflow.
+- [x] Explain schema scope, read-only execution, review control, and backend-only credentials.
+- [x] Remove the public component-library route and document the design system in Markdown.
+- [x] Use Tailwind utilities and theme tokens for production frontend styling.
+- [x] Verify formatting, linting, typechecking, tests, production build, and browser smoke behavior.
+
 ---
 
 ## Milestone 11 - Model Replaceability

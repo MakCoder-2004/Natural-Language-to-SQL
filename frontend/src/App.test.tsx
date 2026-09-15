@@ -66,6 +66,11 @@ describe("Milestone 10 application", () => {
     expect(screen.getByLabelText(/system context/i)).toHaveTextContent(
       /fastapi \/ postgresql \/ read-only/i,
     );
+    expect(
+      screen.getByRole("complementary", { name: /how your question is handled/i }),
+    ).toHaveTextContent(
+      /relevant schema only|read-only execution|you stay in control|no credentials in the browser/i,
+    );
     expect(screen.queryByText(/component library/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/switch design/i)).not.toBeInTheDocument();
   });
