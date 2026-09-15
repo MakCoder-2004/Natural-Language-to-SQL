@@ -287,10 +287,10 @@ Question -> schema retrieval -> SQL generation -> validation -> execution -> res
 - [x] Connect SQL generation to retrieved schema context.
 - [x] Define a validation service interface before implementing pipeline execution.
 - [ ] Route generated SQL through the validation service.
-- [ ] Route execution only through the source database service.
-- [ ] Normalize returned columns and rows.
-- [ ] Represent empty results distinctly from failures.
-- [ ] Represent truncation and result limits in responses.
+- [x] Route execution only through the source database service.
+- [x] Normalize returned columns and rows.
+- [x] Represent empty results distinctly from failures.
+- [x] Represent truncation and result limits in responses.
 - [x] Generate a grounded answer from executed results.
 - [ ] Generate a basic visualization selection result.
 - [ ] Add safe handling for model, validation, index, and database failures.
