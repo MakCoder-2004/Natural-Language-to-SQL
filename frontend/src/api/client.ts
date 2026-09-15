@@ -11,6 +11,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"
   /\/$/,
   "",
 );
+const requestTimeoutMs = 180_000;
 
 function createApiError(status: number, body: unknown): ApiError {
   const payload = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
@@ -32,7 +33,7 @@ function createApiError(status: number, body: unknown): ApiError {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 45_000);
+  const timeout = window.setTimeout(() => controller.abort(), requestTimeoutMs);
   try {
     const response = await fetch(`${apiBaseUrl}${path}`, {
       ...init,
@@ -45,7 +46,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } catch (cause) {
     if (cause instanceof DOMException && cause.name === "AbortError") {
       const error = new Error(
-        "The request took too long. Try again when the service is ready.",
+        "The request took longer than three minutes. Check backend health and try again.",
       ) as ApiError;
       error.name = "ApiError";
       error.status = 408;
