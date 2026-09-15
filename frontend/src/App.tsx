@@ -1,33 +1,31 @@
 import { useEffect, useReducer, useState } from "react";
 import "./index.css";
 import { queryApi } from "./api/client";
+import { ComponentLibrary } from "./components/ComponentLibrary";
 import { ClarificationPanel } from "./components/ClarificationPanel";
-import { DesignGallery } from "./components/DesignGallery";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { QueryComposer } from "./components/QueryComposer";
 import { ResultsPanel } from "./components/ResultsPanel";
 import { SqlInspector } from "./components/SqlInspector";
 import { WorkflowStatus } from "./components/WorkflowStatus";
-import { getDesign } from "./designs";
 import { initialQueryState, queryReducer } from "./state/queryState";
 
-function routeId() {
-  const value = window.location.pathname.replace(/^\//, "").split("/")[0];
-  return /^([1-9]|10)$/.test(value) ? value : null;
-}
-
 function App() {
-  const [designId, setDesignId] = useState(routeId());
+  const [path, setPath] = useState(() =>
+    window.location.pathname === "/10" ? "/" : window.location.pathname,
+  );
   const [state, dispatch] = useReducer(queryReducer, initialQueryState);
 
   useEffect(() => {
-    const onPopState = () => setDesignId(routeId());
+    if (window.location.pathname === "/10") {
+      window.history.replaceState({}, "", "/");
+    }
+    const onPopState = () => setPath(window.location.pathname);
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  if (!designId) return <DesignGallery />;
-  const design = getDesign(designId);
+  if (path === "/library") return <ComponentLibrary />;
 
   const run = async (action: string, request: () => ReturnType<typeof queryApi.create>) => {
     dispatch({ type: "start", action });
@@ -41,13 +39,8 @@ function App() {
     }
   };
 
-  const openDesign = (id: string) => {
-    window.history.pushState({}, "", `/${id}`);
-    setDesignId(id);
-  };
-
   return (
-    <div className={`app-shell ${design.className}`} data-design={design.id}>
+    <div className="app-shell field-guide" data-design="field-guide">
       <a className="skip-link" href="#workspace">
         Skip to workspace
       </a>
@@ -58,7 +51,7 @@ function App() {
           onClick={(event) => {
             event.preventDefault();
             window.history.pushState({}, "", "/");
-            setDesignId(null);
+            setPath("/");
           }}
         >
           <span className="brand-mark" aria-hidden="true">
@@ -67,30 +60,12 @@ function App() {
           <span>Query / Grounded</span>
         </a>
         <div className="topbar-meta">
-          <span className="design-label">
-            {design.category} / {design.name}
-          </span>
-          <label htmlFor="design-select" className="sr-only">
-            Switch design
-          </label>
-          <select
-            id="design-select"
-            value={design.id}
-            onChange={(event) => openDesign(event.target.value)}
-          >
-            {Array.from({ length: 10 }, (_, index) => {
-              const item = getDesign(String(index + 1));
-              return (
-                <option value={item.id} key={item.id}>
-                  {item.id} / {item.name}
-                </option>
-              );
-            })}
-          </select>
+          <span className="design-label">Cartographic Field Guide</span>
+          <a href="/library">Component library</a>
         </div>
       </header>
       <div className="design-intro">
-        <span>{design.signature}</span>
+        <span>SCHEMA TERRAIN</span>
         <span>FastAPI / PostgreSQL / read-only</span>
       </div>
       <main id="workspace" className="workspace">
@@ -175,10 +150,8 @@ function App() {
           <div className="rail-note">
             <span className="note-glyph">⌁</span>
             <strong>Current design</strong>
-            <p>{design.description}</p>
-            <button type="button" onClick={() => openDesign(String((Number(design.id) % 10) + 1))}>
-              Try the next study
-            </button>
+            <p>A field guide for navigating schema terrain and grounded results.</p>
+            <a href="/library">Inspect the system</a>
           </div>
         </aside>
       </main>
