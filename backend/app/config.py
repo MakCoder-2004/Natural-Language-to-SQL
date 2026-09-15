@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Final
+from typing import Final, Literal
 
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -79,6 +79,8 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_site_url: str | None = None
     openrouter_site_name: str | None = None
+    model_provider: Literal["openrouter", "ollama"] = "openrouter"
+    ollama_base_url: str = "http://localhost:11434"
 
     question_model: str | None = None
     sql_model: str | None = None

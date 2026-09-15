@@ -47,3 +47,25 @@ def test_chat_factory_allows_roles_to_share_a_model(monkeypatch: Any) -> None:
     create_chat_model(settings, ModelRole.ANSWER_GENERATION)
 
     assert captured == ["provider/shared", "provider/shared"]
+
+
+def test_chat_factory_uses_ollama_without_openrouter_credentials(monkeypatch: Any) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeChatOllama:
+        def __init__(self, **kwargs: Any) -> None:
+            captured.update(kwargs)
+
+    monkeypatch.setattr("app.chains.model_factory.ChatOllama", FakeChatOllama)
+    settings = Settings(
+        _env_file=None,
+        model_provider="ollama",
+        ollama_base_url="http://ollama:11434",
+        question_model="qwen3.5:4b",
+    )
+
+    model = create_chat_model(settings, ModelRole.QUESTION_ANALYSIS)
+
+    assert captured["model"] == "qwen3.5:4b"
+    assert captured["base_url"] == "http://ollama:11434"
+    assert isinstance(model, FakeChatOllama)

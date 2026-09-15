@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
 from app.config import Settings
@@ -16,16 +17,32 @@ logger = logging.getLogger(__name__)
 
 
 def create_chat_model(settings: Settings, role: ModelRole) -> Any:
-    """Create an OpenRouter-compatible chat model without exposing credentials."""
+    """Create the configured local or OpenRouter chat model."""
 
-    api_key = settings.openrouter_api_key
-    if api_key is None or not api_key.get_secret_value().strip():
-        raise ModelServiceError("OPENROUTER_API_KEY is required for model operations.")
     try:
         model_name = settings.model_id_for(role)
     except ValueError as exc:
         raise ModelServiceError(str(exc)) from exc
     try:
+        if settings.model_provider == "ollama":
+            model: Any = ChatOllama(
+                model=model_name,
+                base_url=settings.ollama_base_url,
+                temperature=0,
+                client_kwargs={"timeout": settings.model_request_timeout_seconds},
+            )
+            emit_event(
+                logger,
+                "model_configured",
+                model_provider="ollama",
+                model_role=role.value,
+                model_id=model_name,
+            )
+            return model
+
+        api_key = settings.openrouter_api_key
+        if api_key is None or not api_key.get_secret_value().strip():
+            raise ModelServiceError("OPENROUTER_API_KEY is required for model operations.")
         default_headers: dict[str, str] = {}
         if settings.openrouter_site_url:
             default_headers["HTTP-Referer"] = settings.openrouter_site_url
