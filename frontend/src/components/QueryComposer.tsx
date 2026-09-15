@@ -12,9 +12,16 @@ type Props = {
 
 export function QueryComposer({ question, mode, disabled, onQuestion, onMode, onSubmit }: Props) {
   return (
-    <Panel className="composer panel" aria-labelledby="composer-title">
-      <div className="section-kicker">Ask the source</div>
-      <h2 id="composer-title">What do you need to know?</h2>
+    <Panel className="p-[clamp(1.25rem,3vw,2rem)]" aria-labelledby="composer-title">
+      <div className="mb-3 text-xs font-bold uppercase tracking-[0.13em] text-accent-strong">
+        Ask the source
+      </div>
+      <h2
+        id="composer-title"
+        className="mb-4 font-display text-[clamp(1.5rem,3vw,2.25rem)] font-semibold tracking-[-0.04em]"
+      >
+        What do you need to know?
+      </h2>
       <label className="sr-only" htmlFor="question">
         Natural-language question
       </label>
@@ -26,14 +33,16 @@ export function QueryComposer({ question, mode, disabled, onQuestion, onMode, on
         rows={4}
         maxLength={4_000}
         disabled={disabled}
+        className="w-full resize-y rounded-control border border-border bg-surface-muted p-4 leading-[1.55] text-ink outline-none focus:border-accent focus:ring-3 focus:ring-accent/20"
       />
-      <div className="composer-footer">
-        <div className="mode-control" aria-label="Execution mode">
-          <span className="control-label">Run mode</span>
-          <div className="segmented-control">
+      <div className="mt-4 flex items-end justify-between gap-4 max-[720px]:flex-col max-[720px]:items-stretch">
+        <fieldset className="grid min-w-0 gap-2 border-0 p-0">
+          <legend className="text-xs font-bold uppercase tracking-[0.1em]">Run mode</legend>
+          <div className="grid grid-cols-2 gap-0.5 rounded-pill border border-border bg-surface-muted p-0.5">
             <button
               type="button"
-              className={mode === "REVIEW" ? "is-selected" : ""}
+              aria-pressed={mode === "REVIEW"}
+              className={`min-h-11 rounded-control px-3 py-2 text-sm text-ink transition-colors focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2 ${mode === "REVIEW" ? "bg-ink text-surface" : "bg-transparent"}`}
               onClick={() => onMode("REVIEW")}
               disabled={disabled}
             >
@@ -41,21 +50,22 @@ export function QueryComposer({ question, mode, disabled, onQuestion, onMode, on
             </button>
             <button
               type="button"
-              className={mode === "AUTO" ? "is-selected" : ""}
+              aria-pressed={mode === "AUTO"}
+              className={`min-h-11 rounded-control px-3 py-2 text-sm text-ink transition-colors focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2 ${mode === "AUTO" ? "bg-ink text-surface" : "bg-transparent"}`}
               onClick={() => onMode("AUTO")}
               disabled={disabled}
             >
               Auto run
             </button>
           </div>
-          <span className="mode-help">
+          <span className="min-h-8 text-xs text-ink-muted">
             {mode === "REVIEW"
               ? "You approve the exact SQL before it runs."
-              : "The backend still validates every statement before execution."}
+              : "The backend validates limits, scope, and read-only policy before execution."}
           </span>
-        </div>
+        </fieldset>
         <button
-          className="primary-action"
+          className="min-h-11 rounded-control border-2 border-accent bg-accent px-4 py-3 font-bold text-surface transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-3 max-[720px]:w-full"
           type="button"
           onClick={onSubmit}
           disabled={disabled || question.trim().length === 0}
