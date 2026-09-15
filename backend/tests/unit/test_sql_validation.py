@@ -86,6 +86,29 @@ def test_unknown_relation_and_column_are_rejected() -> None:
     assert unknown_column.blocking_errors == ("unknown_column",)
 
 
+def test_quoted_mixed_case_relation_is_validated_case_safely() -> None:
+    relation = RelationMetadata(
+        schema_name="public",
+        name="Order",
+        kind="table",
+        columns=(SourceColumnMetadata("created_at", 1, "timestamp", False),),
+    )
+    snapshot = SourceSchemaSnapshot(
+        identity=DatabaseIdentity("source", "readonly"),
+        scope=("public",),
+        schemas=(SchemaMetadata("public", (relation,)),),
+        fingerprint="fingerprint",
+    )
+
+    result = SqlValidationService().validate(
+        'SELECT COUNT(*) FROM "public"."Order" '
+        "WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)",
+        snapshot,
+    )
+
+    assert result.passed
+
+
 def test_read_only_cte_and_aliases_are_supported() -> None:
     result = SqlValidationService().validate(
         "WITH recent AS (SELECT event_name FROM analytics.events) "

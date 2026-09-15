@@ -229,7 +229,12 @@ class SqlValidationService:
             reference = by_alias.get(column.table.lower()) or by_name.get(column.table.lower())
             candidates = (reference,) if reference is not None else references
             matching_columns = [
-                (candidate, source_relations[(candidate.schema_name, candidate.relation_name)])
+                (
+                    candidate,
+                    source_relations[
+                        (candidate.schema_name.lower(), candidate.relation_name.lower())
+                    ],
+                )
                 for candidate in candidates
                 if (candidate.schema_name.lower(), candidate.relation_name.lower())
                 in source_relations
