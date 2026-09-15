@@ -12,6 +12,7 @@ from app.config import Settings
 from app.database.errors import ModelOutputError, ModelServiceError, translate_model_exception
 from app.models.model_roles import ModelRole
 from app.models.results import GroundedAnswer, QueryResult
+from app.telemetry import emit_event
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +33,11 @@ class AnswerGenerationService:
         """Generate a grounded answer without passing raw database objects onward."""
 
         try:
-            logger.info(
-                "model_invocation role=%s model_id=%s",
-                ModelRole.ANSWER_GENERATION.value,
-                getattr(self, "model_id", None),
+            emit_event(
+                logger,
+                "model_invocation",
+                model_role=ModelRole.ANSWER_GENERATION.value,
+                model_id=getattr(self, "model_id", None),
             )
             result_json = json.dumps(
                 {

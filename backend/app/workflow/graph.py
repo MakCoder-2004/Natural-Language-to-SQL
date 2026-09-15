@@ -26,6 +26,7 @@ from app.services.retrieval import HybridSchemaRetrievalService
 from app.services.sql_correction import SqlCorrectionService
 from app.services.sql_generation import SqlGenerationService
 from app.services.visualization import VisualizationSelector
+from app.telemetry import emit_event
 from app.validation.sql import SqlValidationService
 from app.workflow.errors import WorkflowError
 from app.workflow.state import (
@@ -541,7 +542,9 @@ class DeterministicQueryWorkflow:
         return state.evolve(visualization=self.visualization_selector.select(state.result))
 
     def _complete_node(self, state: QueryWorkflowState) -> QueryWorkflowState:
-        return transition(state, QueryState.COMPLETED, reason="workflow completed")
+        completed = transition(state, QueryState.COMPLETED, reason="workflow completed")
+        emit_event(logger, "query_completed", **_telemetry_fields(completed))
+        return completed
 
     def _tool_set(
         self,
@@ -590,6 +593,13 @@ class DeterministicQueryWorkflow:
         from app.workflow.state import WorkflowErrorInfo
 
         failed = state.evolve(error=WorkflowErrorInfo(code=code, message=message, stage=stage))
+        emit_event(
+            logger,
+            "query_failed",
+            **_telemetry_fields(failed),
+            failure_stage=stage,
+            error_code=code,
+        )
         if failed.state == QueryState.FAILED:
             return failed
         return transition(failed, QueryState.FAILED, reason=code)
@@ -597,3 +607,36 @@ class DeterministicQueryWorkflow:
 
 def _milliseconds(started: float) -> float:
     return round((perf_counter() - started) * 1000, 2)
+
+
+def _telemetry_fields(state: QueryWorkflowState) -> dict[str, Any]:
+    """Build safe query telemetry from workflow-owned metadata only."""
+
+    validation = state.validation
+    result = state.result
+    retrieval = state.retrieval
+    return {
+        "query_id": str(state.query_id),
+        "pipeline_run_id": str(state.pipeline_run_id),
+        "execution_mode": state.execution_mode,
+        "status": state.state.value,
+        "stage_timings_ms": state.stage_timings_ms,
+        "correction_attempts": state.correction_attempts,
+        "regeneration_count": state.regeneration_count,
+        "source_fingerprint": state.source_fingerprint,
+        "index_fingerprint": state.index_fingerprint,
+        "selected_schemas": sorted({table.schema_name for table in retrieval.tables})
+        if retrieval is not None
+        else [],
+        "selected_tables": sorted(
+            {f"{table.schema_name}.{table.relation_name}" for table in retrieval.tables}
+        )
+        if retrieval is not None
+        else [],
+        "validation_passed": validation.passed if validation is not None else None,
+        "validation_errors": validation.blocking_errors if validation is not None else [],
+        "row_count": result.row_count if result is not None else None,
+        "returned_row_count": result.returned_row_count if result is not None else None,
+        "result_bytes": result.result_bytes if result is not None else None,
+        "truncated": result.truncated if result is not None else None,
+    }

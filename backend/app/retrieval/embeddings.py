@@ -12,6 +12,7 @@ from langchain_openai import OpenAIEmbeddings
 from app.config import Settings
 from app.database.errors import EmbeddingServiceError
 from app.models.model_roles import ModelRole
+from app.telemetry import emit_event
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +89,7 @@ def create_embedding_provider(settings: Settings) -> LangChainEmbeddingProvider:
         )
     except Exception as exc:
         raise EmbeddingServiceError("The embedding integration could not be configured.") from exc
-    logger.info("model_configured role=%s model_id=%s", ModelRole.EMBEDDING.value, model)
+    emit_event(logger, "model_configured", model_role=ModelRole.EMBEDDING.value, model_id=model)
     return LangChainEmbeddingProvider(embedder, model)
 
 
