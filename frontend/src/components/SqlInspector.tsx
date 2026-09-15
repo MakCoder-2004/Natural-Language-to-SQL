@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { QueryResponse } from "../api/types";
+import { Panel } from "../design-system";
 
 type Props = {
   response: QueryResponse;
@@ -43,7 +44,7 @@ export function SqlInspector({
   const canExecute =
     inspector.approved || (!inspector.approval_required && inspector.validation_passed);
   return (
-    <section className="inspector panel" aria-labelledby="inspector-title">
+    <Panel className="inspector panel" aria-labelledby="inspector-title">
       <div className="inspector-header">
         <div>
           <div className="section-kicker">SQL inspector</div>
@@ -166,6 +167,6 @@ export function SqlInspector({
           This approval is stale. The current SQL must be approved again.
         </p>
       ) : null}
-    </section>
+    </Panel>
   );
 }

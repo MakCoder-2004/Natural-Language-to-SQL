@@ -1,4 +1,5 @@
 import type { ExecutionMode } from "../api/types";
+import { Panel } from "../design-system";
 
 type Props = {
   question: string;
@@ -11,7 +12,7 @@ type Props = {
 
 export function QueryComposer({ question, mode, disabled, onQuestion, onMode, onSubmit }: Props) {
   return (
-    <section className="composer panel" aria-labelledby="composer-title">
+    <Panel className="composer panel" aria-labelledby="composer-title">
       <div className="section-kicker">Ask the source</div>
       <h2 id="composer-title">What do you need to know?</h2>
       <label className="sr-only" htmlFor="question">
@@ -62,6 +63,6 @@ export function QueryComposer({ question, mode, disabled, onQuestion, onMode, on
           {disabled ? "Working..." : mode === "REVIEW" ? "Review question" : "Run automatically"}
         </button>
       </div>
-    </section>
+    </Panel>
   );
 }

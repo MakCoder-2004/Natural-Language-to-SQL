@@ -1,4 +1,5 @@
 import type { QueryResponse } from "../api/types";
+import { Panel } from "../design-system";
 
 function displayValue(value: unknown) {
   if (value === null || value === undefined) return "NULL";
@@ -52,7 +53,7 @@ export function ResultsPanel({ response }: { response: QueryResponse }) {
   const result = response.result;
   if (!result && !response.answer) return null;
   return (
-    <section className="results panel" aria-labelledby="results-title">
+    <Panel className="results panel" aria-labelledby="results-title">
       <div className="section-kicker">Evidence and answer</div>
       <div className="results-heading">
         <h2 id="results-title">What the source returned</h2>
@@ -118,6 +119,6 @@ export function ResultsPanel({ response }: { response: QueryResponse }) {
         </div>
       ) : null}
       <Chart response={response} />
-    </section>
+    </Panel>
   );
 }

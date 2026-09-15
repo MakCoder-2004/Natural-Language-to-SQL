@@ -1,4 +1,5 @@
 import type { QueryResponse } from "../api/types";
+import { Panel } from "../design-system";
 
 const stages = [
   "ANALYZING",
@@ -23,7 +24,7 @@ export function WorkflowStatus({
   const current = response?.status ?? (activeAction ? "ANALYZING" : "IDLE");
   const activeIndex = stages.indexOf(current);
   return (
-    <section className="workflow panel" aria-labelledby="workflow-title">
+    <Panel className="workflow panel" aria-labelledby="workflow-title">
       <div className="section-kicker">Workflow state</div>
       <div className="workflow-heading">
         <h2 id="workflow-title">{label(current)}</h2>
@@ -50,6 +51,6 @@ export function WorkflowStatus({
           </li>
         ))}
       </ol>
-    </section>
+    </Panel>
   );
 }
