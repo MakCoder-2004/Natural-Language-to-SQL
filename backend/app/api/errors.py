@@ -8,7 +8,10 @@ from app.database.errors import (
     DatabasePermissionError,
     DatabaseUnavailableError,
     IndexReadinessError,
+    ModelOutputError,
     ModelServiceError,
+    ModelTimeoutError,
+    ModelUnavailableError,
     NoRelevantSchemaError,
     QueryExecutionError,
     QueryTimeoutError,
@@ -31,7 +34,7 @@ def error_response(
         status = 404
     elif isinstance(error, (DatabaseUnavailableError, IndexReadinessError)):
         status = 503
-    elif isinstance(error, QueryTimeoutError):
+    elif isinstance(error, (QueryTimeoutError, ModelTimeoutError)):
         status = 504
     elif isinstance(error, (DatabasePermissionError, QueryExecutionError)):
         status = 502
@@ -39,7 +42,9 @@ def error_response(
         status = 422
     elif isinstance(error, QueryValidationError):
         status = 422
-    elif isinstance(error, ModelServiceError):
+    elif isinstance(
+        error, (ModelTimeoutError, ModelUnavailableError, ModelOutputError, ModelServiceError)
+    ):
         status = 502
     elif isinstance(error, WorkflowError):
         status = 409
@@ -63,6 +68,9 @@ def _safe_message(code: str) -> str:
         "no_relevant_schema": "No relevant source schema was found for this question.",
         "query_validation_error": "The SQL statement was rejected by the safety policy.",
         "model_error": "The configured model service could not complete the request.",
+        "model_timeout": "The configured model did not respond before the request deadline.",
+        "model_unavailable": "The configured model is currently unavailable.",
+        "model_output_error": "The configured model returned an unusable response.",
         "internal_error": "The request could not be completed safely.",
     }
     return messages.get(code, "The request could not be completed safely.")

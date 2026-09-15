@@ -23,6 +23,7 @@ from app.models.sql import SqlProposal, SqlValidationResult
 from app.services.answer_generation import AnswerGenerationService
 from app.services.question_analysis import QuestionAnalysisService
 from app.services.retrieval import HybridSchemaRetrievalService
+from app.services.sql_correction import SqlCorrectionService
 from app.services.sql_generation import SqlGenerationService
 from app.services.visualization import VisualizationSelector
 from app.validation.sql import SqlValidationService
@@ -49,6 +50,7 @@ class DeterministicQueryWorkflow:
         analysis_service: Any | None = None,
         retrieval_service: Any | None = None,
         sql_generation_service: Any | None = None,
+        sql_correction_service: Any | None = None,
         validation_service: Any | None = None,
         executor: Any | None = None,
         answer_service: Any | None = None,
@@ -62,6 +64,7 @@ class DeterministicQueryWorkflow:
             settings, database_services
         )
         self.sql_generation_service = sql_generation_service or SqlGenerationService(settings)
+        self.sql_correction_service = sql_correction_service
         self.validation_service = validation_service or SqlValidationService(settings)
         self.executor = executor or ReadonlySqlExecutor(settings)
         self.answer_service = answer_service or AnswerGenerationService(settings)
@@ -550,6 +553,14 @@ class DeterministicQueryWorkflow:
         return BoundedToolSet(
             retrieval_service=self.retrieval_service,
             sql_generation_service=self.sql_generation_service,
+            sql_correction_service=(
+                self.sql_correction_service
+                or (
+                    SqlCorrectionService(self.settings)
+                    if state.correction_attempts > 0 and state.validation is not None
+                    else None
+                )
+            ),
             executor=self.executor,
             database_services=self.database_services,
             policy=AgentPolicy(
@@ -562,9 +573,10 @@ class DeterministicQueryWorkflow:
             retrieval_result=retrieval_result,
             correction_errors=(
                 state.validation.blocking_errors
-                if state.state == QueryState.SQL_CORRECTION and state.validation is not None
+                if state.correction_attempts > 0 and state.validation is not None
                 else ()
             ),
+            current_sql=state.proposal.sql if state.proposal is not None else "",
         )
 
     def _failed(

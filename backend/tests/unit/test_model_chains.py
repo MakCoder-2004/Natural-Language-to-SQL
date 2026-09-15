@@ -9,6 +9,7 @@ from app.config import Settings
 from app.models.results import QueryResult
 from app.models.retrieval import RetrievalDiagnostics, RetrievalLimits, RetrievalResult
 from app.services.answer_generation import AnswerGenerationService
+from app.services.sql_correction import SqlCorrectionService
 from app.services.sql_generation import SqlGenerationService
 from langchain_core.messages import AIMessage
 from langchain_core.runnables import RunnableLambda
@@ -59,6 +60,23 @@ def test_sql_generation_converts_structured_output_to_proposal() -> None:
 
     assert proposal.sql == "SELECT count(*) FROM analytics.events"
     assert proposal.tables_used == ("analytics.events",)
+
+
+def test_sql_correction_uses_a_separate_injected_chain() -> None:
+    chain = RunnableLambda(
+        lambda values: SqlProposalOutput(
+            sql="SELECT count(*) FROM analytics.events",
+            interpretation="Corrected count.",
+            tables_used=["analytics.events"],
+        )
+    )
+
+    proposal = SqlCorrectionService(_settings(), chain=chain).correct(
+        "count events", _retrieval(), "SELECT count(*) FROM events", ("missing relation",)
+    )
+
+    assert proposal.sql == "SELECT count(*) FROM analytics.events"
+    assert proposal.interpretation == "Corrected count."
 
 
 def test_answer_generation_converts_structured_output() -> None:

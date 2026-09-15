@@ -82,6 +82,17 @@ class _Generation:
         return SqlProposal.create(sql="SELECT 1", interpretation="Returns one.")
 
 
+class _Correction:
+    def correct(
+        self,
+        question: str,
+        retrieval: RetrievalResult,
+        sql: str,
+        validation_errors: tuple[str, ...],
+    ) -> SqlProposal:
+        return SqlProposal.create(sql="SELECT 1", interpretation="Corrected proposal.")
+
+
 class _Validation:
     def validate(self, sql: str, snapshot: SourceSchemaSnapshot) -> SqlValidationResult:
         return SqlValidationResult(True, sql, sql_hash(sql), (), (), (), (), (), (), True, True)
@@ -145,6 +156,7 @@ def _workflow(
         analysis_service=analysis or _Analysis(),
         retrieval_service=_Retrieval(),
         sql_generation_service=_Generation(),
+        sql_correction_service=_Correction(),
         validation_service=validation_service or _Validation(),
         executor=_Executor(),
         answer_service=_Answer(),
@@ -252,6 +264,7 @@ def test_validation_correction_is_bounded_and_returns_to_review() -> None:
         analysis_service=_Analysis(),
         retrieval_service=_Retrieval(),
         sql_generation_service=_Generation(),
+        sql_correction_service=_Correction(),
         validation_service=validation,
         executor=_Executor(),
         answer_service=_Answer(),
@@ -274,6 +287,7 @@ def test_validation_correction_exhaustion_never_attempts_a_third_retry() -> None
         analysis_service=_Analysis(),
         retrieval_service=_Retrieval(),
         sql_generation_service=_Generation(),
+        sql_correction_service=_Correction(),
         validation_service=validation,
         executor=_Executor(),
         answer_service=_Answer(),

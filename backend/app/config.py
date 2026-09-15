@@ -11,6 +11,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
 
+from app.models.model_roles import ModelRole
+
 DEFAULT_SOURCE_SCHEMA_SCOPE: Final[str] = "public"
 MAX_ALLOWED_CORRECTION_RETRIES: Final[int] = 2
 DEFAULT_MAX_REGENERATION_COUNT: Final[int] = 3
@@ -242,6 +244,21 @@ class Settings(BaseSettings):
             ("ANSWER_MODEL", self.answer_model),
             ("EMBEDDING_MODEL", self.embedding_model),
         )
+
+    def model_id_for(self, role: ModelRole) -> str:
+        """Resolve one configured model ID without exposing provider credentials."""
+
+        values = {
+            ModelRole.QUESTION_ANALYSIS: self.question_model,
+            ModelRole.SQL_GENERATION: self.sql_model,
+            ModelRole.SQL_CORRECTION: self.sql_correction_model,
+            ModelRole.ANSWER_GENERATION: self.answer_model,
+            ModelRole.EMBEDDING: self.embedding_model,
+        }
+        model_id = values[role]
+        if model_id is None or not model_id.strip():
+            raise ValueError(f"{role.value} model is not configured.")
+        return model_id.strip()
 
     def configuration_issues(
         self, *, require_openrouter: bool = False

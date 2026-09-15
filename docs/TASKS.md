@@ -614,28 +614,28 @@ implementations and safe failure behavior.
 
 ### Checklist
 
-- [ ] Define role-based model configuration.
-- [ ] Support question-analysis model selection.
-- [ ] Support SQL-generation model selection.
-- [ ] Support SQL-correction model selection.
-- [ ] Support answer-generation model selection.
-- [ ] Support embedding-model selection.
-- [ ] Integrate OpenRouter through backend-only configuration.
-- [ ] Ensure model IDs are not hardcoded into workflow policy.
-- [ ] Allow multiple logical roles to share one configured model.
-- [ ] Verify multiple compatible model identifiers can be configured.
-- [ ] Add model timeout handling.
-- [ ] Add model unavailable and malformed-output handling.
-- [ ] Record model role and identifier in telemetry.
-- [ ] Add tests using fake model implementations.
-- [ ] Test the workflow with at least two configured model options.
-- [ ] Document model replacement and configuration procedures.
+- [x] Define role-based model configuration.
+- [x] Support question-analysis model selection.
+- [x] Support SQL-generation model selection.
+- [x] Support SQL-correction model selection.
+- [x] Support answer-generation model selection.
+- [x] Support embedding-model selection.
+- [x] Integrate OpenRouter through backend-only configuration.
+- [x] Ensure model IDs are not hardcoded into workflow policy.
+- [x] Allow multiple logical roles to share one configured model.
+- [x] Verify multiple compatible model identifiers can be configured.
+- [x] Add model timeout handling.
+- [x] Add model unavailable and malformed-output handling.
+- [x] Record model role and identifier in telemetry.
+- [x] Add tests using fake model implementations.
+- [x] Test the workflow with at least two configured model options.
+- [x] Document model replacement and configuration procedures.
 
 ### Exit Criteria
 
-- [ ] Models can be changed through configuration without rewriting orchestration.
-- [ ] API keys remain backend-only.
-- [ ] Model failures produce safe, actionable errors.
+- [x] Models can be changed through configuration without rewriting orchestration.
+- [x] API keys remain backend-only.
+- [x] Model failures produce safe, actionable errors.
 
 ---
 

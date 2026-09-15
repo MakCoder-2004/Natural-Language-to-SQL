@@ -79,6 +79,40 @@ class ModelServiceError(RuntimeError):
     error_code = "model_error"
 
 
+class ModelTimeoutError(ModelServiceError):
+    """Raised when a model does not respond within its configured deadline."""
+
+    error_code = "model_timeout"
+
+
+class ModelUnavailableError(ModelServiceError):
+    """Raised when the configured model provider cannot serve a request."""
+
+    error_code = "model_unavailable"
+
+
+class ModelOutputError(ModelServiceError):
+    """Raised when a provider response cannot satisfy a structured contract."""
+
+    error_code = "model_output_error"
+
+
+def translate_model_exception(message: str, error: Exception) -> ModelServiceError:
+    """Classify common provider failures without returning provider details."""
+
+    name = type(error).__name__.lower()
+    status_code = getattr(error, "status_code", None)
+    if "timeout" in name or isinstance(error, TimeoutError):
+        return ModelTimeoutError(message)
+    if status_code in {401, 403, 404, 408, 409, 429} or (
+        isinstance(status_code, int) and status_code >= 500
+    ):
+        return ModelUnavailableError(message)
+    if "connection" in name or "ratelimit" in name or "serviceunavailable" in name:
+        return ModelUnavailableError(message)
+    return ModelServiceError(message)
+
+
 class QueryValidationError(RuntimeError):
     """Raised when generated SQL cannot be authorized."""
 
