@@ -35,14 +35,16 @@ export function QueryComposer({ question, mode, disabled, onQuestion, onMode, on
         disabled={disabled}
         className="w-full resize-y rounded-control border border-border bg-surface-muted p-4 leading-[1.55] text-ink outline-none focus:border-accent focus:ring-3 focus:ring-accent/20"
       />
-      <div className="mt-4 flex items-end justify-between gap-4 max-[720px]:flex-col max-[720px]:items-stretch">
-        <fieldset className="grid min-w-0 gap-2 border-0 p-0">
-          <legend className="text-xs font-bold uppercase tracking-[0.1em]">Run mode</legend>
-          <div className="grid grid-cols-2 gap-0.5 rounded-pill border border-border bg-surface-muted p-0.5">
+      <div className="mt-5 flex items-end justify-between gap-6 max-[720px]:flex-col max-[720px]:items-stretch">
+        <fieldset className="grid min-w-0 max-w-xl flex-1 gap-2 border-0 p-0">
+          <legend className="text-xs font-bold uppercase tracking-[0.1em] text-ink-muted">
+            Run mode
+          </legend>
+          <div className="grid grid-cols-2 overflow-hidden rounded-control border border-border bg-surface-muted p-1">
             <button
               type="button"
               aria-pressed={mode === "REVIEW"}
-              className={`min-h-11 rounded-control px-3 py-2 text-sm text-ink transition-colors focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2 ${mode === "REVIEW" ? "bg-ink text-surface" : "bg-transparent"}`}
+              className={`h-12 rounded-[0.25rem] px-3 py-2 text-sm font-medium text-ink transition-colors focus-visible:z-1 focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-[-3px] ${mode === "REVIEW" ? "bg-ink text-surface shadow-raised" : "bg-transparent hover:bg-surface"}`}
               onClick={() => onMode("REVIEW")}
               disabled={disabled}
             >
@@ -51,7 +53,7 @@ export function QueryComposer({ question, mode, disabled, onQuestion, onMode, on
             <button
               type="button"
               aria-pressed={mode === "AUTO"}
-              className={`min-h-11 rounded-control px-3 py-2 text-sm text-ink transition-colors focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2 ${mode === "AUTO" ? "bg-ink text-surface" : "bg-transparent"}`}
+              className={`h-12 rounded-[0.25rem] px-3 py-2 text-sm font-medium text-ink transition-colors focus-visible:z-1 focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-[-3px] ${mode === "AUTO" ? "bg-ink text-surface shadow-raised" : "bg-transparent hover:bg-surface"}`}
               onClick={() => onMode("AUTO")}
               disabled={disabled}
             >
@@ -60,8 +62,8 @@ export function QueryComposer({ question, mode, disabled, onQuestion, onMode, on
           </div>
           <span className="min-h-8 text-xs text-ink-muted">
             {mode === "REVIEW"
-              ? "You approve the exact SQL before it runs."
-              : "The backend validates limits, scope, and read-only policy before execution."}
+              ? "Inspect and approve the exact SQL before execution."
+              : "Backend validation still applies before execution."}
           </span>
         </fieldset>
         <button

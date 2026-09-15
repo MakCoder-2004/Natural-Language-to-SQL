@@ -82,6 +82,20 @@ describe("Milestone 10 application", () => {
     expect(window.location.pathname).toBe("/");
   });
 
+  it("keeps run modes equal and explains the selected execution path", () => {
+    render(<App />);
+    const review = screen.getByRole("button", { name: "Review first" });
+    const auto = screen.getByRole("button", { name: "Auto run" });
+    expect(review).toHaveAttribute("aria-pressed", "true");
+    expect(auto).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText(/inspect and approve the exact sql/i)).toBeInTheDocument();
+
+    fireEvent.click(auto);
+    expect(review).toHaveAttribute("aria-pressed", "false");
+    expect(auto).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/backend validation still applies/i)).toBeInTheDocument();
+  });
+
   it("does not expose the component library as a production route", () => {
     window.history.replaceState({}, "", "/library");
     render(<App />);
