@@ -98,6 +98,15 @@ class _CorrectingValidation:
         return SqlValidationResult(True, sql, sql_hash(sql), (), (), (), (), (), (), True, True)
 
 
+class _AlwaysInvalidValidation:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def validate(self, sql: str, snapshot: SourceSchemaSnapshot) -> SqlValidationResult:
+        self.calls += 1
+        return SqlValidationResult.rejected(sql, errors=("unknown_column",))
+
+
 class _Executor:
     def execute(self, binding: Any, validation: SqlValidationResult) -> QueryResult:
         return QueryResult(("value",), ((1,),), 1, 1, False, 1, (), validation.sql_hash)
@@ -208,6 +217,29 @@ def test_validation_correction_is_bounded_and_returns_to_review() -> None:
     assert state.state == QueryState.READY_FOR_REVIEW
     assert state.correction_attempts == 1
     assert validation.calls == 2
+
+
+def test_validation_correction_exhaustion_never_attempts_a_third_retry() -> None:
+    validation = _AlwaysInvalidValidation()
+    workflow = DeterministicQueryWorkflow(
+        _settings(),
+        DatabaseServices(SourceDatabase(create_engine("sqlite://"), ("main",)), None),
+        analysis_service=_Analysis(),
+        retrieval_service=_Retrieval(),
+        sql_generation_service=_Generation(),
+        validation_service=validation,
+        executor=_Executor(),
+        answer_service=_Answer(),
+        visualization_selector=_Visualization(),  # type: ignore[arg-type]
+        snapshot_provider=lambda _: _snapshot(),
+    )
+
+    state = workflow.run("count values")
+
+    assert state.state == QueryState.FAILED
+    assert state.error is not None and state.error.code == "correction_exhausted"
+    assert state.correction_attempts == 2
+    assert validation.calls == 3
 
 
 def test_edited_sql_returns_to_validation_and_review() -> None:

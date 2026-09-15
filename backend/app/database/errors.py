@@ -85,7 +85,7 @@ class QueryValidationError(RuntimeError):
     error_code = "query_validation_error"
 
 
-class QueryExecutionError(RuntimeError):
+class QueryExecutionError(DatabaseServiceError):
     """Raised when an authorized source query cannot complete safely."""
 
     error_code = "query_execution_error"

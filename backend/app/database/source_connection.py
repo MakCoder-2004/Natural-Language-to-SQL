@@ -16,6 +16,7 @@ from app.database.errors import (
     DatabasePermissionError,
     DatabaseSeparationError,
     DatabaseUnavailableError,
+    QueryTimeoutError,
 )
 
 
@@ -34,12 +35,20 @@ class SourceDatabase:
             with self.engine.connect() as connection:
                 yield connection
         except OperationalError as exc:
+            if _is_statement_timeout(exc):
+                raise QueryTimeoutError(
+                    "The source query exceeded the configured execution time limit."
+                ) from exc
             if _is_permission_error(exc):
                 raise DatabasePermissionError(
                     "The source database role is not authorized."
                 ) from exc
             raise DatabaseUnavailableError("The source database is unavailable.") from exc
         except DBAPIError as exc:
+            if _is_statement_timeout(exc):
+                raise QueryTimeoutError(
+                    "The source query exceeded the configured execution time limit."
+                ) from exc
             if _is_permission_error(exc):
                 raise DatabasePermissionError(
                     "The source database role is not authorized."
@@ -85,6 +94,14 @@ def _is_permission_error(error: DBAPIError) -> bool:
         return True
     message = str(error.orig).lower()
     return "authentication failed" in message or "no pg_hba.conf" in message
+
+
+def _is_statement_timeout(error: DBAPIError) -> bool:
+    """Recognize PostgreSQL's statement timeout SQLSTATE."""
+
+    original = error.orig
+    sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
+    return sqlstate == "57014"
 
 
 def create_source_database(settings: Settings) -> SourceDatabase:

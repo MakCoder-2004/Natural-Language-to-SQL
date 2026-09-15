@@ -7,13 +7,16 @@ from app.config import Settings
 from app.database.errors import (
     DatabasePermissionError,
     DatabaseSeparationError,
+    QueryTimeoutError,
 )
 from app.database.services import create_database_services
 from app.database.source_connection import SourceDatabase, create_source_database
 from app.database.source_execution import SourceExecutionBinding
 from app.database.source_introspection import SourceIntrospector
 from app.database.source_permissions import verify_source_read_only_access
+from app.database.source_query import ReadonlySqlExecutor
 from app.main import create_app
+from app.models.sql import SqlValidationResult, sql_hash
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.engine import URL
@@ -152,6 +155,32 @@ def test_database_timeouts_are_applied_and_health_reports_live_dependencies(
     finally:
         # TestClient disposes injected services during application shutdown.
         services.dispose()
+
+
+def test_source_executor_translates_postgres_statement_timeout(
+    postgres_fixture: PostgresIntegrationFixture,
+) -> None:
+    settings = fixture_settings(postgres_fixture)
+    database = create_source_database(settings)
+    try:
+        validation = SqlValidationResult(
+            passed=True,
+            sql="SELECT pg_sleep(2)",
+            sql_hash=sql_hash("SELECT pg_sleep(2)"),
+            referenced_schemas=(),
+            referenced_relations=(),
+            referenced_columns=(),
+            blocking_errors=(),
+            warnings=(),
+            applied_limits=(),
+            read_only=True,
+            single_statement=True,
+        )
+
+        with pytest.raises(QueryTimeoutError):
+            ReadonlySqlExecutor(settings).execute(SourceExecutionBinding(database), validation)
+    finally:
+        database.dispose()
 
 
 def test_connection_and_permission_failures_are_safe(

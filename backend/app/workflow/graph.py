@@ -167,6 +167,10 @@ class DeterministicQueryWorkflow:
                     lambda state: state.state == QueryState.COMPLETED,
                     RunnableLambda(lambda state: state),
                 ),
+                (
+                    lambda state: state.state == QueryState.FAILED,
+                    RunnableLambda(lambda state: state),
+                ),
                 self._execute_workflow,
             )
         )
