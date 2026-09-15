@@ -163,11 +163,16 @@ and [Basic SQL Pipeline](docs/pipeline/basic-sql-pipeline.md) for the contracts.
 
 ## Model Configuration
 
-All model choices are backend-only environment configuration. The default OpenRouter
-chat model for question analysis, SQL generation, SQL correction, and answer
-generation is `nex-agi/nex-n2.5-pro:free`. Schema indexing and retrieval use
-`nvidia/nemotron-3-embed-1b:free`. Multiple logical roles may share one model, and
-changing a chat model does not require workflow-code changes.
+All model choices are backend-only environment configuration. Set
+`MODEL_PROVIDER=ollama` and `OLLAMA_BASE_URL=http://host.docker.internal:11434` to
+use a local Ollama chat model. The supplied local configuration uses
+`qwen3.5:4b` for question analysis, SQL generation, SQL correction, and answer
+generation. Ollama must be running on the host before starting the backend.
+
+Schema indexing and retrieval still use the configured OpenRouter embedding model
+(`nvidia/nemotron-3-embed-1b:free` by default). Changing the embedding model
+requires rebuilding the schema index; changing a chat model does not require
+workflow-code changes. Multiple logical chat roles may share one model.
 
 See [Model Replacement](docs/models/model-replacement.md) for configuration,
 timeouts, failure behavior, and the required index rebuild procedure after changing
