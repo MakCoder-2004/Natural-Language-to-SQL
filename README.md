@@ -152,6 +152,18 @@ authorizes SQL. The exact SQL must pass deterministic validation before executio
 See [Basic SQL Pipeline](docs/pipeline/basic-sql-pipeline.md) for the internal
 contracts and current scope.
 
+## Model Configuration
+
+All model choices are backend-only environment configuration. The default OpenRouter
+chat model for question analysis, SQL generation, SQL correction, and answer
+generation is `nex-agi/nex-n2.5-pro:free`. Schema indexing and retrieval use
+`nvidia/nemotron-3-embed-1b:free`. Multiple logical roles may share one model, and
+changing a chat model does not require workflow-code changes.
+
+See [Model Replacement](docs/models/model-replacement.md) for configuration,
+timeouts, failure behavior, and the required index rebuild procedure after changing
+the embedding model.
+
 ## Direct Development Commands
 
 The backend commands are provided by `backend/pyproject.toml` and its `uv.lock`:

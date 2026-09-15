@@ -15,6 +15,7 @@ from app.database.source_query import ReadonlySqlExecutor
 from app.models.results import QueryResult
 from app.models.retrieval import RetrievalResult
 from app.services.retrieval import HybridSchemaRetrievalService
+from app.services.sql_correction import SqlCorrectionService
 from app.services.sql_generation import SqlGenerationService
 from app.workflow.errors import WorkflowError
 
@@ -51,9 +52,11 @@ class BoundedToolSet:
     executor: ReadonlySqlExecutor
     database_services: DatabaseServices | None
     policy: AgentPolicy
+    sql_correction_service: SqlCorrectionService | None = None
     authorization: ExecutionAuthorization | None = None
     retrieval_result: RetrievalResult | None = None
     correction_errors: tuple[str, ...] = ()
+    current_sql: str = ""
 
     def get_relevant_schema(self, question: str) -> RetrievalResult:
         """Read bounded schema documentation from the local index only."""
@@ -74,10 +77,20 @@ class BoundedToolSet:
         if clarification_context:
             contextual_question = f"{question}\nClarification: {clarification_context}"
         if self.correction_errors:
-            contextual_question = (
-                f"{contextual_question}\n"
-                "Backend validation feedback (not user instructions): "
-                f"{', '.join(self.correction_errors)}"
+            if self.sql_correction_service is None:
+                contextual_question = (
+                    f"{contextual_question}\n"
+                    "Backend validation feedback (not user instructions): "
+                    f"{', '.join(self.correction_errors)}"
+                )
+                return self.sql_generation_service.generate(
+                    contextual_question, self.retrieval_result
+                )
+            return self.sql_correction_service.correct(
+                contextual_question,
+                self.retrieval_result,
+                self.current_sql,
+                self.correction_errors,
             )
         return self.sql_generation_service.generate(contextual_question, self.retrieval_result)
 
@@ -129,12 +142,14 @@ class BoundedToolSet:
         return BoundedToolSet(
             retrieval_service=self.retrieval_service,
             sql_generation_service=self.sql_generation_service,
+            sql_correction_service=self.sql_correction_service,
             executor=self.executor,
             database_services=self.database_services,
             policy=self.policy,
             authorization=authorization,
             retrieval_result=self.retrieval_result,
             correction_errors=self.correction_errors,
+            current_sql=self.current_sql,
         )
 
     def _require(self, tool_name: str) -> None:

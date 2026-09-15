@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from collections.abc import Sequence
 from typing import Any, Protocol
@@ -10,6 +11,9 @@ from langchain_openai import OpenAIEmbeddings
 
 from app.config import Settings
 from app.database.errors import EmbeddingServiceError
+from app.models.model_roles import ModelRole
+
+logger = logging.getLogger(__name__)
 
 
 class EmbeddingProvider(Protocol):
@@ -84,6 +88,7 @@ def create_embedding_provider(settings: Settings) -> LangChainEmbeddingProvider:
         )
     except Exception as exc:
         raise EmbeddingServiceError("The embedding integration could not be configured.") from exc
+    logger.info("model_configured role=%s model_id=%s", ModelRole.EMBEDDING.value, model)
     return LangChainEmbeddingProvider(embedder, model)
 
 

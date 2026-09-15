@@ -175,3 +175,7 @@ For direct development:
 cd backend
 uv run index-schema
 ```
+Model role variables are backend-only. The default chat roles use
+`nex-agi/nex-n2.5-pro:free`, while `EMBEDDING_MODEL` uses
+`nvidia/nemotron-3-embed-1b:free`. See [Model Replacement](models/model-replacement.md)
+for replacement and index-refresh procedures.
