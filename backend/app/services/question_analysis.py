@@ -57,7 +57,11 @@ class QuestionAnalysisService:
                 filters=tuple(output.filters or ()),
                 time_range=output.time_range,
                 grouping=tuple(output.grouping or ()),
-                ordering=output.ordering,
+                ordering=(
+                    ", ".join(output.ordering)
+                    if isinstance(output.ordering, list)
+                    else output.ordering
+                ),
                 limit=output.limit,
                 likely_source_tables=tuple(output.likely_source_tables or ()),
                 ambiguous_terms=tuple(output.ambiguous_terms or ()),

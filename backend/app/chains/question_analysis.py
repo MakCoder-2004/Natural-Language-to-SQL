@@ -20,7 +20,7 @@ class QuestionAnalysisOutput(BaseModel):
     filters: list[str] | None = None
     time_range: str | None = None
     grouping: list[str] | None = None
-    ordering: str | None = None
+    ordering: str | list[str] | None = None
     limit: int | None = Field(default=None, ge=1)
     likely_source_tables: list[str] | None = None
     ambiguous_terms: list[str] | None = None
