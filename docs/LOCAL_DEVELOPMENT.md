@@ -144,6 +144,17 @@ active index exists but must be refreshed before relying on it for retrieval.
 Health responses and startup logs never include passwords, API keys, connection
 URLs, stack traces, or business rows.
 
+## Query API
+
+The backend API stores query workflow state in memory for the lifetime of the
+running process. Use `POST /api/query` to start a Review Mode query, then use
+the returned `query_id` with the clarification, edit, approval, execute,
+regenerate, and lookup endpoints documented in `docs/api/backend-api.md`.
+
+Auto Mode executes after the same backend validation and limit checks during the
+initial `POST /api/query` request. Restarting the backend clears current-session
+query state.
+
 ## Schema Indexing
 
 Version-controlled semantic metadata lives under `schema_index/metadata`. The

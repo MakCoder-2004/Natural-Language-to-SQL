@@ -1255,7 +1255,23 @@ Conceptual request:
 
 If the user edited SQL, the edited SQL must be submitted through the backend and validated before approval can succeed.
 
-### 15.4 `POST /api/query/{query_id}/execute`
+### 15.4 `POST /api/query/{query_id}/edit`
+
+Purpose: submit edited SQL for backend validation before approval.
+
+Conceptual request:
+
+```json
+{
+  "sql": "SELECT ..."
+}
+```
+
+Edited SQL is untrusted input. The backend clears the previous validation and
+approval, validates the exact edited SQL, and returns a new SQL version token.
+Review Mode still requires explicit approval after the edit.
+
+### 15.5 `POST /api/query/{query_id}/execute`
 
 Purpose: execute an approved or valid Auto Mode query.
 
@@ -1267,7 +1283,7 @@ Rules:
 - Execute only against the source database.
 - Return normalized results and final answer data.
 
-### 15.5 `POST /api/query/{query_id}/regenerate`
+### 15.6 `POST /api/query/{query_id}/regenerate`
 
 Purpose: request another SQL proposal.
 
@@ -1277,7 +1293,7 @@ Rules:
 - Do not bypass validation.
 - Do not execute automatically in Review Mode.
 
-### 15.6 `GET /api/query/{query_id}`
+### 15.7 `GET /api/query/{query_id}`
 
 Purpose: retrieve current query state, SQL Inspector data, result data, or safe error data.
 
@@ -1288,7 +1304,7 @@ The response must not contain:
 - Internal stack traces.
 - Unnecessary sensitive customer data.
 
-### 15.7 `GET /api/health`
+### 15.8 `GET /api/health`
 
 Purpose: report service and dependency health.
 
@@ -1300,7 +1316,7 @@ The health response should distinguish:
 - Index readiness or staleness.
 - OpenRouter dependency configuration without exposing secrets.
 
-### 15.8 API response fields
+### 15.9 API response fields
 
 Where applicable, query responses should include:
 
@@ -1320,7 +1336,7 @@ Where applicable, query responses should include:
 - `visualization` metadata.
 - Safe error information.
 
-### 15.9 Error mapping
+### 15.10 Error mapping
 
 Raw stack traces must not be exposed to normal users.
 

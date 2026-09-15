@@ -480,40 +480,41 @@ thin and delegating work to application services.
 
 ### Checklist
 
-- [ ] Create FastAPI application entrypoint and dependency wiring.
-- [ ] Create request and response schemas for all public endpoints.
-- [ ] Implement `POST /api/query`.
-- [ ] Implement `POST /api/query/{query_id}/clarify`.
-- [ ] Implement `POST /api/query/{query_id}/approve`.
-- [ ] Implement `POST /api/query/{query_id}/execute`.
-- [ ] Implement `POST /api/query/{query_id}/regenerate`.
-- [ ] Implement `GET /api/query/{query_id}`.
-- [ ] Implement `GET /api/health`.
-- [ ] Make execution mode explicit in API requests and responses.
-- [ ] Return query IDs for query lifecycle operations.
-- [ ] Return clarification data without generating SQL prematurely.
-- [ ] Return SQL Inspector data in structured response fields.
-- [ ] Return normalized result columns, rows, limits, and truncation state.
-- [ ] Return grounded answer and optional visualization data separately from SQL text.
-- [ ] Add request validation for malformed or incomplete payloads.
-- [ ] Map domain errors to safe HTTP responses.
-- [ ] Map ambiguous, unsafe, correction-exhausted, database, and index failures distinctly.
-- [ ] Ensure raw backend stack traces are not returned to normal users.
-- [ ] Ensure routes do not contain the complete LLM or SQL workflow.
-- [ ] Add dependency injection for query, indexing, database, model, and telemetry services.
-- [ ] Add CORS configuration for the local frontend.
-- [ ] Add API documentation for request and response contracts.
-- [ ] Add API tests for clear, ambiguous, impossible, unsafe, and failed queries.
-- [ ] Add API tests for approval, execution, regeneration, lookup, and health.
-- [ ] Add API tests proving every execution request revalidates exact SQL.
-- [ ] Add API tests proving frontend-provided validation cannot authorize execution.
+- [x] Create FastAPI application entrypoint and dependency wiring.
+- [x] Create request and response schemas for all public endpoints.
+- [x] Implement `POST /api/query`.
+- [x] Implement `POST /api/query/{query_id}/clarify`.
+- [x] Implement `POST /api/query/{query_id}/edit` for untrusted SQL edits.
+- [x] Implement `POST /api/query/{query_id}/approve`.
+- [x] Implement `POST /api/query/{query_id}/execute`.
+- [x] Implement `POST /api/query/{query_id}/regenerate`.
+- [x] Implement `GET /api/query/{query_id}`.
+- [x] Implement `GET /api/health`.
+- [x] Make execution mode explicit in API requests and responses.
+- [x] Return query IDs for query lifecycle operations.
+- [x] Return clarification data without generating SQL prematurely.
+- [x] Return SQL Inspector data in structured response fields.
+- [x] Return normalized result columns, rows, limits, and truncation state.
+- [x] Return grounded answer and optional visualization data separately from SQL text.
+- [x] Add request validation for malformed or incomplete payloads.
+- [x] Map domain errors to safe HTTP responses.
+- [x] Map ambiguous, unsafe, correction-exhausted, database, and index failures distinctly.
+- [x] Ensure raw backend stack traces are not returned to normal users.
+- [x] Ensure routes do not contain the complete LLM or SQL workflow.
+- [x] Add dependency injection for query, indexing, database, model, and telemetry services.
+- [x] Add CORS configuration for the local frontend.
+- [x] Add API documentation for request and response contracts.
+- [x] Add API tests for clear, ambiguous, impossible, unsafe, and failed queries.
+- [x] Add API tests for approval, execution, regeneration, lookup, and health.
+- [x] Add API tests proving every execution request revalidates exact SQL.
+- [x] Add API tests proving frontend-provided validation cannot authorize execution.
 
 ### Exit Criteria
 
-- [ ] Every required API endpoint exists and has a tested contract.
-- [ ] FastAPI routes delegate to backend services instead of containing orchestration logic.
-- [ ] API responses are safe, structured, and sufficient for the frontend.
-- [ ] No database credentials or connection details appear in API responses.
+- [x] Every required API endpoint exists and has a tested contract.
+- [x] FastAPI routes delegate to backend services instead of containing orchestration logic.
+- [x] API responses are safe, structured, and sufficient for the frontend.
+- [x] No database credentials or connection details appear in API responses.
 
 ---
 
