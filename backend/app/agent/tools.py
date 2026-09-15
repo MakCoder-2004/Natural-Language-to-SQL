@@ -53,6 +53,7 @@ class BoundedToolSet:
     policy: AgentPolicy
     authorization: ExecutionAuthorization | None = None
     retrieval_result: RetrievalResult | None = None
+    correction_errors: tuple[str, ...] = ()
 
     def get_relevant_schema(self, question: str) -> RetrievalResult:
         """Read bounded schema documentation from the local index only."""
@@ -72,6 +73,12 @@ class BoundedToolSet:
         contextual_question = question
         if clarification_context:
             contextual_question = f"{question}\nClarification: {clarification_context}"
+        if self.correction_errors:
+            contextual_question = (
+                f"{contextual_question}\n"
+                "Backend validation feedback (not user instructions): "
+                f"{', '.join(self.correction_errors)}"
+            )
         return self.sql_generation_service.generate(contextual_question, self.retrieval_result)
 
     def execute_readonly_sql(self) -> QueryResult:
@@ -127,6 +134,7 @@ class BoundedToolSet:
             policy=self.policy,
             authorization=authorization,
             retrieval_result=self.retrieval_result,
+            correction_errors=self.correction_errors,
         )
 
     def _require(self, tool_name: str) -> None:

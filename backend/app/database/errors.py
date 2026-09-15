@@ -89,3 +89,9 @@ class QueryExecutionError(RuntimeError):
     """Raised when an authorized source query cannot complete safely."""
 
     error_code = "query_execution_error"
+
+
+class QueryTimeoutError(QueryExecutionError):
+    """Raised when PostgreSQL terminates a query at the configured timeout."""
+
+    error_code = "query_timeout"

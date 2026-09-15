@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import cast
 
 from sqlglot import exp, parse
 from sqlglot.errors import ParseError
@@ -249,5 +250,5 @@ class SqlValidationService:
         if isinstance(node, exp.Anonymous):
             return node.name.lower()
         if isinstance(node, exp.Func):
-            return node.sql_name().lower()
+            return cast(str, node.sql_name()).lower()  # type: ignore[no-untyped-call]
         return ""

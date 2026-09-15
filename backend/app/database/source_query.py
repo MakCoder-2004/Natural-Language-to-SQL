@@ -9,10 +9,10 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
 from app.config import Settings
-from app.database.errors import DatabaseServiceError, QueryExecutionError
+from app.database.errors import DatabaseServiceError, QueryExecutionError, QueryTimeoutError
 from app.database.source_execution import SourceExecutionBinding
 from app.models.results import QueryResult
 from app.models.sql import SqlValidationResult, sql_hash
@@ -42,6 +42,12 @@ class ReadonlySqlExecutor:
                 raw_rows = cursor.fetchmany(self.settings.max_returned_rows + 1)
         except DatabaseServiceError:
             raise
+        except DBAPIError as exc:
+            if _is_statement_timeout(exc):
+                raise QueryTimeoutError(
+                    "The source query exceeded the configured execution time limit."
+                ) from exc
+            raise QueryExecutionError("The source query could not be executed.") from exc
         except SQLAlchemyError as exc:
             raise QueryExecutionError("The source query could not be executed.") from exc
         except Exception as exc:
@@ -118,3 +124,11 @@ def _json_size(value: Any) -> int:
     """Return the UTF-8 size of a compact, stable JSON representation."""
 
     return len(json.dumps(value, default=str, separators=(",", ":"), ensure_ascii=False).encode())
+
+
+def _is_statement_timeout(error: DBAPIError) -> bool:
+    """Recognize PostgreSQL's server-side statement timeout without exposing details."""
+
+    original = error.orig
+    sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
+    return sqlstate == "57014"

@@ -517,6 +517,11 @@ class DeterministicQueryWorkflow:
             ),
             authorization=authorization,
             retrieval_result=retrieval_result,
+            correction_errors=(
+                state.validation.blocking_errors
+                if state.state == QueryState.SQL_CORRECTION and state.validation is not None
+                else ()
+            ),
         )
 
     def _failed(
