@@ -375,40 +375,40 @@ policy enforced independently of the model.
 
 ### Checklist
 
-- [ ] Allow one read-only `SELECT` statement by default.
-- [ ] Add carefully validated `WITH ... SELECT` support if enabled.
-- [ ] Reject `INSERT`, `UPDATE`, `DELETE`, and `MERGE`.
-- [ ] Reject DDL statements.
-- [ ] Reject transaction control statements.
-- [ ] Reject `GRANT`, `REVOKE`, and other privilege operations.
-- [ ] Reject multi-statement SQL.
-- [ ] Detect hidden statements in comments and formatting.
-- [ ] Validate referenced schemas against the approved source scope.
-- [ ] Validate referenced tables against introspected source metadata.
-- [ ] Validate referenced columns against introspected source metadata.
-- [ ] Reject references to the local index database.
-- [ ] Define and enforce suspicious or unsupported construct policy.
-- [ ] Enforce statement timeouts.
-- [ ] Enforce returned-row limits.
-- [ ] Enforce result byte limits.
-- [ ] Represent truncation and pagination in results.
-- [ ] Implement a maximum of two correction attempts.
-- [ ] Pass validation errors to correction without exposing unnecessary sensitive data.
-- [ ] Revalidate the exact SQL at every execution endpoint.
-- [ ] Bind approval to the SQL version or hash.
-- [ ] Verify the PostgreSQL runtime role is read-only.
-- [ ] Add unit tests for every statement policy category.
-- [ ] Add security tests for multi-statement and comment-obfuscated SQL.
-- [ ] Add security tests for hallucinated tables and columns.
-- [ ] Add security tests for index database references.
-- [ ] Add tests for timeouts, row limits, bytes limits, and correction exhaustion.
+- [x] Allow one read-only `SELECT` statement by default.
+- [x] Add carefully validated `WITH ... SELECT` support if enabled.
+- [x] Reject `INSERT`, `UPDATE`, `DELETE`, and `MERGE`.
+- [x] Reject DDL statements.
+- [x] Reject transaction control statements.
+- [x] Reject `GRANT`, `REVOKE`, and other privilege operations.
+- [x] Reject multi-statement SQL.
+- [x] Detect hidden statements in comments and formatting.
+- [x] Validate referenced schemas against the approved source scope.
+- [x] Validate referenced tables against introspected source metadata.
+- [x] Validate referenced columns against introspected source metadata.
+- [x] Reject references to the local index database.
+- [x] Define and enforce suspicious or unsupported construct policy.
+- [x] Enforce statement timeouts.
+- [x] Enforce returned-row limits.
+- [x] Enforce result byte limits.
+- [x] Represent truncation and pagination in results.
+- [x] Implement a maximum of two correction attempts.
+- [x] Pass validation errors to correction without exposing unnecessary sensitive data.
+- [x] Revalidate the exact SQL at every execution endpoint.
+- [x] Bind approval to the SQL version or hash.
+- [x] Verify the PostgreSQL runtime role is read-only.
+- [x] Add unit tests for every statement policy category.
+- [x] Add security tests for multi-statement and comment-obfuscated SQL.
+- [x] Add security tests for hallucinated tables and columns.
+- [x] Add security tests for index database references.
+- [x] Add tests for timeouts, row limits, bytes limits, and correction exhaustion.
 
 ### Exit Criteria
 
-- [ ] Unsafe SQL is rejected deterministically.
-- [ ] Correction cannot loop indefinitely.
-- [ ] Edited SQL cannot bypass backend validation.
-- [ ] Database permissions provide an independent safety boundary.
+- [x] Unsafe SQL is rejected deterministically.
+- [x] Correction cannot loop indefinitely.
+- [x] Edited SQL cannot bypass backend validation.
+- [x] Database permissions provide an independent safety boundary.
 
 ---
 
