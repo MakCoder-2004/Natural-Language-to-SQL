@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.database.errors import (
     DatabasePermissionError,
+    DatabaseServiceError,
     DatabaseUnavailableError,
     IndexReadinessError,
     ModelOutputError,
@@ -41,6 +42,8 @@ def error_response(
     elif isinstance(error, NoRelevantSchemaError):
         status = 422
     elif isinstance(error, QueryValidationError):
+        status = 422
+    elif isinstance(error, DatabaseServiceError):
         status = 422
     elif isinstance(
         error, (ModelTimeoutError, ModelUnavailableError, ModelOutputError, ModelServiceError)
