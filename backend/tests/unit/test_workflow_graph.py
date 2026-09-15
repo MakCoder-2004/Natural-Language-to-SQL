@@ -87,6 +87,17 @@ class _Validation:
         return SqlValidationResult(True, sql, sql_hash(sql), (), (), (), (), (), (), True, True)
 
 
+class _CorrectingValidation:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def validate(self, sql: str, snapshot: SourceSchemaSnapshot) -> SqlValidationResult:
+        self.calls += 1
+        if self.calls == 1:
+            return SqlValidationResult.rejected(sql, errors=("invalid identifier",))
+        return SqlValidationResult(True, sql, sql_hash(sql), (), (), (), (), (), (), True, True)
+
+
 class _Executor:
     def execute(self, binding: Any, validation: SqlValidationResult) -> QueryResult:
         return QueryResult(("value",), ((1,),), 1, 1, False, 1, (), validation.sql_hash)
@@ -174,3 +185,37 @@ def test_workflow_result_requires_completion() -> None:
 
     with pytest.raises(WorkflowError):
         workflow.result(ready)
+
+
+def test_validation_correction_is_bounded_and_returns_to_review() -> None:
+    validation = _CorrectingValidation()
+    services = DatabaseServices(SourceDatabase(create_engine("sqlite://"), ("main",)), None)
+    workflow = DeterministicQueryWorkflow(
+        _settings(max_correction_retries=1),
+        services,
+        analysis_service=_Analysis(),
+        retrieval_service=_Retrieval(),
+        sql_generation_service=_Generation(),
+        validation_service=validation,
+        executor=_Executor(),
+        answer_service=_Answer(),
+        visualization_selector=_Visualization(),  # type: ignore[arg-type]
+        snapshot_provider=lambda _: _snapshot(),
+    )
+
+    state = workflow.run("count values")
+
+    assert state.state == QueryState.READY_FOR_REVIEW
+    assert state.correction_attempts == 1
+    assert validation.calls == 2
+
+
+def test_edited_sql_returns_to_validation_and_review() -> None:
+    workflow = _workflow()
+    ready = workflow.run("count values")
+
+    edited = workflow.edit_sql(ready, "SELECT 2")
+
+    assert edited.state == QueryState.READY_FOR_REVIEW
+    assert edited.proposal is not None and edited.proposal.sql == "SELECT 2"
+    assert edited.validation is not None and edited.validation.sql == "SELECT 2"

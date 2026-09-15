@@ -202,7 +202,15 @@ class DeterministicQueryWorkflow:
         started = perf_counter()
         if state.state == QueryState.RECEIVED:
             state = transition(state, QueryState.ANALYZING, reason="begin question analysis")
-        analysis = self.analysis_service.analyze(state.question, state.clarification_context)
+        try:
+            analysis = self.analysis_service.analyze(state.question, state.clarification_context)
+        except Exception as exc:
+            return self._failed(
+                state,
+                code=getattr(exc, "error_code", "model_error"),
+                message="The question could not be analyzed safely.",
+                stage="analysis",
+            )
         state = state.evolve(
             analysis=analysis,
             stage_timings_ms={**state.stage_timings_ms, "analysis": _milliseconds(started)},
@@ -223,7 +231,15 @@ class DeterministicQueryWorkflow:
     def _retrieve_node(self, state: QueryWorkflowState) -> QueryWorkflowState:
         started = perf_counter()
         tool_set = self._tool_set(state)
-        retrieval = tool_set.get_relevant_schema(state.question)
+        try:
+            retrieval = tool_set.get_relevant_schema(state.question)
+        except Exception as exc:
+            return self._failed(
+                state,
+                code=getattr(exc, "error_code", "index_error"),
+                message="The schema index could not provide relevant context.",
+                stage="retrieval",
+            )
         return state.evolve(
             retrieval=retrieval,
             index_fingerprint=retrieval.index_fingerprint,
@@ -240,7 +256,15 @@ class DeterministicQueryWorkflow:
             )
         started = perf_counter()
         tool_set = self._tool_set(state, retrieval_result=state.retrieval)
-        proposal = tool_set.generate_sql(state.question, state.clarification_context)
+        try:
+            proposal = tool_set.generate_sql(state.question, state.clarification_context)
+        except Exception as exc:
+            return self._failed(
+                state,
+                code=getattr(exc, "error_code", "model_error"),
+                message="The SQL proposal could not be generated safely.",
+                stage="sql_generation",
+            )
         generated = state.evolve(
             proposal=proposal,
             validation=None,
@@ -276,7 +300,15 @@ class DeterministicQueryWorkflow:
             validating = transition(state, QueryState.VALIDATING, reason="validate edited SQL")
         else:
             validating = state
-        snapshot = self.snapshot_provider(self.database_services.source)
+        try:
+            snapshot = self.snapshot_provider(self.database_services.source)
+        except Exception:
+            return self._failed(
+                validating,
+                code="source_introspection_error",
+                message="The source schema could not be inspected safely.",
+                stage="validation",
+            )
         if (
             validating.retrieval is not None
             and snapshot.fingerprint != validating.retrieval.index_fingerprint
@@ -295,7 +327,17 @@ class DeterministicQueryWorkflow:
                 message="SQL generation did not produce a proposal.",
                 stage="validation",
             )
-        validation: SqlValidationResult = self.validation_service.validate(proposal.sql, snapshot)
+        try:
+            validation: SqlValidationResult = self.validation_service.validate(
+                proposal.sql, snapshot
+            )
+        except Exception:
+            return self._failed(
+                validating,
+                code="query_validation_error",
+                message="The SQL could not be validated safely.",
+                stage="validation",
+            )
         validated = validating.evolve(
             validation=validation,
             validated_sql_hash=validation.sql_hash if validation.passed else None,
@@ -370,10 +412,18 @@ class DeterministicQueryWorkflow:
                 stage="execution",
             )
         started = perf_counter()
-        snapshot = self.snapshot_provider(self.database_services.source)
-        validation: SqlValidationResult = self.validation_service.validate(
-            state.proposal.sql, snapshot
-        )
+        try:
+            snapshot = self.snapshot_provider(self.database_services.source)
+            validation: SqlValidationResult = self.validation_service.validate(
+                state.proposal.sql, snapshot
+            )
+        except Exception:
+            return self._failed(
+                state,
+                code="execution_revalidation_failed",
+                message="The exact SQL could not be revalidated before execution.",
+                stage="execution",
+            )
         if not validation.passed or validation.sql_hash != state.validated_sql_hash:
             return self._failed(
                 state,
@@ -419,7 +469,15 @@ class DeterministicQueryWorkflow:
                 stage="answer",
             )
         started = perf_counter()
-        answer = self.answer_service.generate(state.question, state.proposal.sql, state.result)
+        try:
+            answer = self.answer_service.generate(state.question, state.proposal.sql, state.result)
+        except Exception:
+            return self._failed(
+                state,
+                code="answer_generation_error",
+                message="The executed result could not be summarized safely.",
+                stage="answer",
+            )
         answered = state.evolve(
             answer=answer,
             stage_timings_ms={**state.stage_timings_ms, "answer": _milliseconds(started)},

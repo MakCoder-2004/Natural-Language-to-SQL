@@ -340,9 +340,9 @@ A state-driven LCEL workflow with a controlled agent and bounded tools.
 - [x] Ensure tools receive no credentials or connection details.
 - [x] Ensure the agent cannot mutate workflow state or bypass gates.
 - [x] Limit the agent to approved application tools.
-- [ ] Add structured model-output parsing and missing-field validation.
-- [ ] Implement regeneration behavior through the workflow state.
-- [ ] Implement graceful handling for impossible and unsupported questions.
+- [x] Add structured model-output parsing and missing-field validation.
+- [x] Implement regeneration behavior through the workflow state.
+- [x] Implement graceful handling for impossible and unsupported questions.
 - [x] Add tests for valid questions and state transitions.
 - [x] Add tests for ambiguous questions.
 - [x] Add tests for impossible questions.
