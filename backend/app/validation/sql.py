@@ -8,6 +8,7 @@ from typing import cast
 from sqlglot import exp, parse
 from sqlglot.errors import ParseError
 
+from app.config import Settings
 from app.database.models import RelationMetadata, SourceSchemaSnapshot
 from app.models.sql import SqlValidationResult, sql_hash
 
@@ -74,6 +75,9 @@ class _RelationReference:
 class SqlValidationService:
     """Authorize only one read-only SELECT against the current source snapshot."""
 
+    def __init__(self, settings: Settings | None = None) -> None:
+        self.settings = settings
+
     def validate(
         self,
         sql: str,
@@ -139,7 +143,7 @@ class SqlValidationService:
             referenced_columns=tuple(sorted(referenced_columns)),
             blocking_errors=(),
             warnings=(),
-            applied_limits=(),
+            applied_limits=self._applied_limits(),
             read_only=True,
             single_statement=True,
         )
@@ -247,6 +251,13 @@ class SqlValidationService:
                     f"{matched_reference.schema_name}.{matched_reference.relation_name}.{column_name}"
                 )
         return errors, referenced
+
+    def _applied_limits(self) -> tuple[str, ...]:
+        """Describe backend resource controls attached to an authorization result."""
+
+        if self.settings is None:
+            return ()
+        return ("statement_timeout", "max_returned_rows", "max_result_bytes")
 
     @staticmethod
     def _function_name(node: exp.Expression) -> str:

@@ -62,7 +62,7 @@ class DeterministicQueryWorkflow:
             settings, database_services
         )
         self.sql_generation_service = sql_generation_service or SqlGenerationService(settings)
-        self.validation_service = validation_service or SqlValidationService()
+        self.validation_service = validation_service or SqlValidationService(settings)
         self.executor = executor or ReadonlySqlExecutor(settings)
         self.answer_service = answer_service or AnswerGenerationService(settings)
         self.visualization_selector = visualization_selector or VisualizationSelector()

@@ -1,6 +1,9 @@
 """Unit tests for conservative SQL validation."""
 
+from typing import Any
+
 import pytest
+from app.config import Settings
 from app.database.models import (
     DatabaseIdentity,
     RelationMetadata,
@@ -42,6 +45,19 @@ def test_valid_select_and_aggregation_are_authorized() -> None:
     assert result.single_statement
     assert result.referenced_relations == ("analytics.events",)
     assert "analytics.events.amount" in result.referenced_columns
+
+
+def test_configured_resource_limits_are_recorded_on_authorization() -> None:
+    settings_constructor: Any = Settings
+    settings = settings_constructor(_env_file=None)
+    result = SqlValidationService(settings).validate("SELECT 1", _snapshot())
+
+    assert result.passed
+    assert result.applied_limits == (
+        "statement_timeout",
+        "max_returned_rows",
+        "max_result_bytes",
+    )
 
 
 def test_select_without_source_relation_is_allowed() -> None:
@@ -96,6 +112,10 @@ def test_read_only_cte_and_aliases_are_supported() -> None:
         ("TRUNCATE analytics.events", "not_read_only"),
         ("GRANT SELECT ON analytics.events TO public", "not_read_only"),
         ("REVOKE SELECT ON analytics.events FROM public", "not_read_only"),
+        ("BEGIN", "not_read_only"),
+        ("COMMIT", "not_read_only"),
+        ("ROLLBACK", "not_read_only"),
+        ("SET statement_timeout = 0", "not_read_only"),
         ("SELECT * INTO analytics.copy_of_events FROM analytics.events", "not_read_only"),
         ("SELECT * FROM analytics.events FOR UPDATE", "not_read_only"),
         ("SELECT pg_sleep(1)", "suspicious_function"),
