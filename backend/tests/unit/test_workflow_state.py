@@ -71,3 +71,72 @@ def test_request_ids_are_opaque_backend_values() -> None:
     state = QueryWorkflowState.from_request(request)
     assert state.query_id == request.query_id
     assert state.pipeline_run_id == request.pipeline_run_id
+
+
+def test_sql_inspector_exposes_current_and_original_sql() -> None:
+    from app.models.sql import SqlProposal, SqlValidationResult, sql_hash
+
+    original = SqlProposal.create(sql="SELECT 1", interpretation="One")
+    current = SqlProposal.create(sql="SELECT 2", interpretation="Two")
+    validation = SqlValidationResult(
+        True,
+        current.sql,
+        sql_hash(current.sql),
+        ("public",),
+        ("public.values",),
+        (),
+        (),
+        ("warning",),
+        ("statement_timeout",),
+        True,
+        True,
+    )
+    state = _state().evolve(
+        proposal=current,
+        original_proposal=original,
+        validation=validation,
+        validated_sql_hash=validation.sql_hash,
+    )
+
+    inspector = state.sql_inspector()
+
+    assert inspector is not None
+    assert inspector.sql == "SELECT 2"
+    assert inspector.original_sql == "SELECT 1"
+    assert inspector.sql_version == validation.sql_hash
+    assert inspector.validation_passed is True
+    assert inspector.approved_source is True
+    assert inspector.approval_required is True
+    assert inspector.approved is False
+    assert inspector.stale_approval is False
+
+
+def test_sql_inspector_reports_stale_approval() -> None:
+    from app.models.sql import SqlProposal, SqlValidationResult, sql_hash
+
+    proposal = SqlProposal.create(sql="SELECT 1", interpretation="One")
+    validation = SqlValidationResult(
+        True,
+        proposal.sql,
+        sql_hash(proposal.sql),
+        (),
+        (),
+        (),
+        (),
+        (),
+        (),
+        True,
+        True,
+    )
+    state = _state().evolve(
+        proposal=proposal,
+        validation=validation,
+        validated_sql_hash=validation.sql_hash,
+        approval_sql_hash=sql_hash("SELECT 2"),
+    )
+
+    inspector = state.sql_inspector()
+
+    assert inspector is not None
+    assert inspector.approved is False
+    assert inspector.stale_approval is True

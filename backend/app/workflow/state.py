@@ -12,7 +12,7 @@ from app.models.pipeline import PipelineResult
 from app.models.query import QueryRequest
 from app.models.results import GroundedAnswer, QueryResult
 from app.models.retrieval import RetrievalResult
-from app.models.sql import SqlProposal, SqlValidationResult
+from app.models.sql import SqlInspector, SqlProposal, SqlValidationResult
 from app.models.visualization import VisualizationSelection
 
 
@@ -94,6 +94,7 @@ class QueryWorkflowState:
     analysis: QuestionAnalysis | None = None
     retrieval: RetrievalResult | None = None
     proposal: SqlProposal | None = None
+    original_proposal: SqlProposal | None = None
     validation: SqlValidationResult | None = None
     validated_sql_hash: str | None = None
     approval_sql_hash: str | None = None
@@ -131,6 +132,34 @@ class QueryWorkflowState:
         """Return a new state without mutating this workflow state."""
 
         return replace(self, **changes)
+
+    def sql_inspector(self) -> SqlInspector | None:
+        """Return the review projection for the current proposal, if available."""
+
+        proposal = self.proposal
+        if proposal is None:
+            return None
+        validation = self.validation
+        validated_hash = self.validated_sql_hash
+        approval_hash = self.approval_sql_hash
+        return SqlInspector(
+            sql=proposal.sql,
+            original_sql=self.original_proposal.sql if self.original_proposal is not None else None,
+            sql_version=proposal.sql_hash,
+            interpretation=proposal.interpretation,
+            tables_used=proposal.tables_used,
+            assumptions=proposal.assumptions,
+            validation_passed=validation.passed if validation is not None else False,
+            blocking_errors=validation.blocking_errors if validation is not None else (),
+            read_only=validation.read_only if validation is not None else False,
+            approved_source=(validation.passed if validation is not None else False),
+            single_statement=validation.single_statement if validation is not None else False,
+            applied_limits=validation.applied_limits if validation is not None else (),
+            warnings=proposal.warnings + (validation.warnings if validation is not None else ()),
+            approval_required=self.execution_mode == "REVIEW",
+            approved=approval_hash is not None and approval_hash == validated_hash,
+            stale_approval=approval_hash is not None and approval_hash != validated_hash,
+        )
 
 
 def pipeline_result_from_state(state: QueryWorkflowState) -> PipelineResult:

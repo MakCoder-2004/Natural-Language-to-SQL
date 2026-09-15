@@ -151,6 +151,20 @@ def test_review_mode_stops_before_execution_and_can_be_approved() -> None:
     assert completed.result is not None
 
 
+def test_initial_proposal_is_preserved_when_sql_is_edited() -> None:
+    workflow = _workflow()
+
+    ready = workflow.run("count values")
+    edited = workflow.edit_sql(ready, "SELECT 2")
+
+    assert ready.proposal is not None
+    assert edited.original_proposal is not None
+    assert edited.original_proposal.sql == ready.proposal.sql
+    assert edited.proposal is not None
+    assert edited.proposal.sql == "SELECT 2"
+    assert edited.approval_sql_hash is None
+
+
 def test_auto_mode_completes_only_after_validation() -> None:
     completed = _workflow().run("count values", execution_mode="AUTO")
 

@@ -118,7 +118,12 @@ class DeterministicQueryWorkflow:
             assumptions=state.proposal.assumptions,
             warnings=state.proposal.warnings,
         )
-        edited = state.evolve(proposal=edited_proposal, validation=None, validated_sql_hash=None)
+        edited = state.evolve(
+            proposal=edited_proposal,
+            validation=None,
+            validated_sql_hash=None,
+            approval_sql_hash=None,
+        )
         edited = transition(edited, QueryState.EDITED, reason="user edited SQL")
         return self._validate_node(edited)
 
@@ -271,8 +276,10 @@ class DeterministicQueryWorkflow:
             )
         generated = state.evolve(
             proposal=proposal,
+            original_proposal=state.original_proposal or proposal,
             validation=None,
             validated_sql_hash=None,
+            approval_sql_hash=None,
             stage_timings_ms={**state.stage_timings_ms, "sql_generation": _milliseconds(started)},
         )
         if generated.state == QueryState.SCHEMA_RETRIEVED:

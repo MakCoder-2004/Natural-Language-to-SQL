@@ -84,3 +84,25 @@ class SqlValidationResult:
             read_only=False,
             single_statement=False,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class SqlInspector:
+    """Backend-derived data needed to explain and authorize a SQL proposal."""
+
+    sql: str
+    original_sql: str | None
+    sql_version: str
+    interpretation: str
+    tables_used: tuple[str, ...]
+    assumptions: tuple[str, ...]
+    validation_passed: bool
+    blocking_errors: tuple[str, ...]
+    read_only: bool
+    approved_source: bool
+    single_statement: bool
+    applied_limits: tuple[str, ...]
+    warnings: tuple[str, ...]
+    approval_required: bool
+    approved: bool
+    stale_approval: bool
