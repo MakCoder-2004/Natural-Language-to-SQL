@@ -12,6 +12,7 @@ from app.config import DEFAULT_MAX_QUESTION_LENGTH
 from app.models.results import GroundedAnswer, QueryResult
 from app.models.sql import SqlInspector, SqlValidationResult
 from app.models.visualization import VisualizationSelection
+from app.services.runtime_database import SourceConnectionProfile
 from app.workflow.state import QueryState, QueryWorkflowState
 
 
@@ -58,6 +59,50 @@ class SqlEditRequest(ApiModel):
 
 class ApprovalRequest(ApiModel):
     sql_version: str = Field(min_length=1, max_length=128)
+
+
+class DatabaseConnectionRequest(ApiModel):
+    url: str = Field(min_length=1, max_length=2_000)
+    schema_scope: str = Field(min_length=1, max_length=500)
+
+    @field_validator("url", "schema_scope")
+    @classmethod
+    def value_not_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("value cannot be blank")
+        return value
+
+
+class DatabaseConnectionResponse(ApiModel):
+    connected: bool = True
+    host: str
+    port: int | None
+    database: str | None
+    user: str | None
+    schemas: tuple[str, ...]
+    relation_count: int
+    read_only_verified: bool
+
+    @classmethod
+    def from_profile(cls, value: SourceConnectionProfile) -> DatabaseConnectionResponse:
+        return cls(
+            host=value.host,
+            port=value.port,
+            database=value.database,
+            user=value.user,
+            schemas=value.schemas,
+            relation_count=value.relation_count,
+            read_only_verified=value.read_only_verified,
+        )
+
+
+class DatabaseIndexResponse(ApiModel):
+    status: str
+    source_fingerprint: str
+    document_count: int
+    embedding_count: int
+    indexed_at: datetime | None
 
 
 class ErrorBody(ApiModel):

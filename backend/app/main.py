@@ -13,10 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.health import router as health_router
 from app.api.routes.query import router as query_router
+from app.api.routes.settings import router as settings_router
 from app.config import Settings, get_settings
 from app.database.errors import DatabaseServiceError
 from app.database.services import DatabaseServices, create_database_services
 from app.services.query_service import QueryService
+from app.services.runtime_database import RuntimeDatabaseManager
 from app.telemetry import emit_event
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,7 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
             logger.warning("database_services_unavailable error_code=%s", type(exc).__name__)
             database_services = DatabaseServices()
     application.state.database_services = database_services
+    application.state.runtime_database_manager = RuntimeDatabaseManager(settings, database_services)
     if getattr(application.state, "query_service", None) is None:
         application.state.query_service = QueryService(settings, database_services)
     issues = settings.configuration_issues()
@@ -80,11 +83,12 @@ def create_app(
             if origin.strip()
         ],
         allow_credentials=False,
-        allow_methods=["GET", "POST"],
+        allow_methods=["DELETE", "GET", "POST"],
         allow_headers=["*"],
     )
     application.include_router(health_router)
     application.include_router(query_router)
+    application.include_router(settings_router)
 
     @application.middleware("http")
     async def request_telemetry(

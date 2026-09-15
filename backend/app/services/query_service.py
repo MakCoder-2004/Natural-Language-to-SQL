@@ -75,3 +75,10 @@ class QueryService:
 
     def get_query(self, query_id: UUID) -> QueryWorkflowState:
         return self.store.require(query_id)
+
+    def reset_after_source_change(self) -> None:
+        """Drop cached workflows and query states after changing databases."""
+
+        with self._lock:
+            self._workflow = None
+            self.store.clear()

@@ -24,6 +24,13 @@ class DatabaseServices:
         if self.index is not None:
             self.index.dispose()
 
+    def replace_source(self, source: SourceDatabase | None) -> SourceDatabase | None:
+        """Replace the source binding and return the previous service."""
+
+        previous = self.source
+        self.source = source
+        return previous
+
 
 def create_database_services(settings: Settings) -> DatabaseServices:
     """Create configured database services without connecting eagerly."""
