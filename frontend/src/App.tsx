@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import "./index.css";
 import { queryApi } from "./api/client";
 import { ClarificationPanel } from "./components/ClarificationPanel";
@@ -11,6 +11,7 @@ import { initialQueryState, queryReducer } from "./state/queryState";
 
 function App() {
   const [state, dispatch] = useReducer(queryReducer, initialQueryState);
+  const [historyOpen, setHistoryOpen] = useState(true);
 
   useEffect(() => {
     if (window.location.pathname === "/10") {
@@ -43,19 +44,33 @@ function App() {
       </a>
       <main
         id="workspace"
-        className="mx-auto grid w-[min(calc(100%-3rem),1320px)] grid-cols-[19rem_minmax(0,1fr)] gap-[clamp(1.5rem,3vw,3rem)] py-16 pb-12 max-[1050px]:grid-cols-[16rem_minmax(0,1fr)] max-[720px]:flex max-[720px]:w-[min(calc(100%-2rem),1320px)] max-[720px]:flex-col max-[720px]:gap-0 max-[720px]:py-10"
+        className={`mx-auto grid w-[min(calc(100%-3rem),1320px)] gap-[clamp(1.5rem,3vw,3rem)] py-16 pb-12 max-[720px]:flex max-[720px]:w-[min(calc(100%-2rem),1320px)] max-[720px]:flex-col max-[720px]:gap-0 max-[720px]:py-10 ${historyOpen ? "grid-cols-[19rem_minmax(0,1fr)] max-[1050px]:grid-cols-[16rem_minmax(0,1fr)]" : "grid-cols-[minmax(0,56rem)] justify-center"}`}
       >
         <div
           className="col-span-full flex items-center justify-between border-b border-border pb-3 text-xs uppercase tracking-[0.08em] text-ink-muted max-[720px]:items-start max-[720px]:flex-col max-[720px]:gap-2"
           aria-label="System context"
         >
           <span className="font-bold text-accent-strong">Schema terrain</span>
-          <span>FastAPI / PostgreSQL / read-only</span>
+          <div className="flex items-center gap-4 max-[720px]:flex-wrap">
+            <span>FastAPI / PostgreSQL / read-only</span>
+            {!historyOpen ? (
+              <button
+                type="button"
+                className="rounded-control border border-border bg-transparent px-3 py-2 text-xs font-bold uppercase tracking-[0.06em] text-ink-muted transition-colors hover:border-accent hover:text-accent-strong focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2"
+                onClick={() => setHistoryOpen(true)}
+              >
+                Show history
+              </button>
+            ) : null}
+          </div>
         </div>
-        <HistoryPanel
-          entries={state.history}
-          onSelect={(id) => void run("load", () => queryApi.get(id))}
-        />
+        {historyOpen ? (
+          <HistoryPanel
+            entries={state.history}
+            onSelect={(id) => void run("load", () => queryApi.get(id))}
+            onClose={() => setHistoryOpen(false)}
+          />
+        ) : null}
         <div className="min-w-0 max-[720px]:order-1">
           <section className="mb-10 max-w-3xl">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.13em] text-accent-strong">

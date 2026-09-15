@@ -26,9 +26,11 @@ function statusTone(status: string) {
 export function HistoryPanel({
   entries,
   onSelect,
+  onClose,
 }: {
   entries: HistoryEntry[];
   onSelect: (id: string) => void;
+  onClose: () => void;
 }) {
   return (
     <aside
@@ -44,12 +46,22 @@ export function HistoryPanel({
             Query history
           </h2>
         </div>
-        <span
-          className="grid size-6 place-items-center rounded-full bg-surface-muted font-code text-xs text-ink"
-          aria-label={`${entries.length} queries`}
-        >
-          {entries.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className="grid size-6 place-items-center rounded-full bg-surface-muted font-code text-xs text-ink"
+            aria-label={`${entries.length} queries`}
+          >
+            {entries.length}
+          </span>
+          <button
+            type="button"
+            className="rounded-control border border-border bg-transparent px-2 py-1 text-xs font-bold uppercase tracking-[0.06em] text-ink-muted transition-colors hover:border-accent hover:text-accent-strong focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2"
+            onClick={onClose}
+            aria-label="Hide query history"
+          >
+            Close
+          </button>
+        </div>
       </header>
       {entries.length === 0 ? (
         <div className="relative mt-6 grid gap-2 border-t border-border py-5 pl-5 text-sm leading-[1.5] text-ink-muted">

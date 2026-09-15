@@ -64,6 +64,11 @@ Use the following rules when extending the interface:
 - Keep production components free of custom stylesheet selectors.
 - Preserve the distinction between moss success, clay action, ochre warning, and
   danger failure states.
+- Keep the production workspace focused on the question, session history, and
+  backend-provided evidence; avoid persistent explanatory rails and redundant
+  footer copy.
+- Keep execution-mode controls compact, equal in size, and content-sized on
+  desktop while allowing them to expand to the available width on mobile.
 
 ## Safety Rules
 

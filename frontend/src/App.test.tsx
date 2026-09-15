@@ -93,6 +93,18 @@ describe("Milestone 10 application", () => {
     expect(screen.getByText(/backend validation still applies/i)).toBeInTheDocument();
   });
 
+  it("can hide history and restore the centered workspace", () => {
+    render(<App />);
+    expect(screen.getByRole("complementary", { name: /query history/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /hide query history/i }));
+    expect(screen.queryByRole("complementary", { name: /query history/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /show history/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /show history/i }));
+    expect(screen.getByRole("complementary", { name: /query history/i })).toBeInTheDocument();
+  });
+
   it("does not expose the component library as a production route", () => {
     window.history.replaceState({}, "", "/library");
     render(<App />);
