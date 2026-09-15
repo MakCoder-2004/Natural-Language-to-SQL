@@ -1,14 +1,16 @@
 """Unit tests for structured SQL and answer model boundaries."""
 
+import json
 from typing import Any, cast
 
-from app.chains.answer_generation import GroundedAnswerOutput
-from app.chains.sql_generation import SqlProposalOutput
+from app.chains.answer_generation import GroundedAnswerOutput, build_answer_generation_chain
+from app.chains.sql_generation import SqlProposalOutput, build_sql_generation_chain
 from app.config import Settings
 from app.models.results import QueryResult
 from app.models.retrieval import RetrievalDiagnostics, RetrievalLimits, RetrievalResult
 from app.services.answer_generation import AnswerGenerationService
 from app.services.sql_generation import SqlGenerationService
+from langchain_core.messages import AIMessage
 from langchain_core.runnables import RunnableLambda
 
 
@@ -83,3 +85,47 @@ def test_answer_generation_converts_structured_output() -> None:
 
     assert answer.answer == "There are 3 events."
     assert answer.evidence_summary.startswith("The executed")
+
+
+def test_sql_lcel_chain_parses_model_message() -> None:
+    model = RunnableLambda(
+        lambda _: AIMessage(
+            content=json.dumps(
+                {
+                    "sql": "SELECT 1",
+                    "interpretation": "Returns one.",
+                    "tables_used": [],
+                    "assumptions": [],
+                    "warnings": [],
+                }
+            )
+        )
+    )
+
+    output = build_sql_generation_chain(model).invoke(
+        {"question": "return one", "schema_context": "No tables required."}
+    )
+
+    assert isinstance(output, SqlProposalOutput)
+    assert output.sql == "SELECT 1"
+
+
+def test_answer_lcel_chain_parses_model_message() -> None:
+    model = RunnableLambda(
+        lambda _: AIMessage(
+            content=json.dumps(
+                {
+                    "answer": "There are no rows.",
+                    "caveats": [],
+                    "evidence_summary": "The result was empty.",
+                }
+            )
+        )
+    )
+
+    output = build_answer_generation_chain(model).invoke(
+        {"question": "show events", "sql": "SELECT 1", "result_json": '{"rows": []}'}
+    )
+
+    assert isinstance(output, GroundedAnswerOutput)
+    assert output.answer == "There are no rows."

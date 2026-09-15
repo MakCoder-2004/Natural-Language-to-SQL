@@ -293,17 +293,17 @@ Question -> schema retrieval -> SQL generation -> validation -> execution -> res
 - [x] Represent truncation and result limits in responses.
 - [x] Generate a grounded answer from executed results.
 - [x] Generate a basic visualization selection result.
-- [ ] Add safe handling for model, validation, index, and database failures.
-- [ ] Add a backend integration test for a successful clear question.
-- [ ] Add an integration test for a valid query returning zero rows.
-- [ ] Verify there is no execution path that bypasses validation.
+- [x] Add safe handling for model, validation, index, and database failures.
+- [ ] Add a backend integration test for a successful clear question. (Implemented; Docker verification blocked in this environment.)
+- [ ] Add an integration test for a valid query returning zero rows. (Implemented; Docker verification blocked in this environment.)
+- [x] Verify there is no execution path that bypasses validation.
 
 ### Exit Criteria
 
-- [ ] A clear question can produce a validated read-only query and normalized result.
-- [ ] The answer is based on executed data, not generated claims.
-- [ ] Empty and truncated results are represented correctly.
-- [ ] The pipeline uses the external source database and local schema index correctly.
+- [ ] A clear question can produce a validated read-only query and normalized result. (Integration verification pending.)
+- [ ] The answer is based on executed data, not generated claims. (Integration verification pending.)
+- [ ] Empty and truncated results are represented correctly. (Integration verification pending.)
+- [ ] The pipeline uses the external source database and local schema index correctly. (Integration verification pending.)
 
 ---
 

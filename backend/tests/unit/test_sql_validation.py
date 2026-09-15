@@ -19,6 +19,7 @@ def _snapshot() -> SourceSchemaSnapshot:
             SourceColumnMetadata("occurred_at", 1, "timestamp", False),
             SourceColumnMetadata("category", 2, "text", True),
             SourceColumnMetadata("amount", 3, "numeric", True),
+            SourceColumnMetadata("event_name", 4, "text", True),
         ),
     )
     return SourceSchemaSnapshot(
@@ -66,3 +67,14 @@ def test_unknown_relation_and_column_are_rejected() -> None:
 
     assert unknown_relation.blocking_errors == ("unknown_relation",)
     assert unknown_column.blocking_errors == ("unknown_column",)
+
+
+def test_read_only_cte_and_aliases_are_supported() -> None:
+    result = SqlValidationService().validate(
+        "WITH recent AS (SELECT event_name FROM analytics.events) "
+        "SELECT recent.event_name FROM recent",
+        _snapshot(),
+    )
+
+    assert result.passed
+    assert result.referenced_relations == ("analytics.events",)
