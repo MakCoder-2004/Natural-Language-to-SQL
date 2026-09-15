@@ -11,7 +11,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"
   /\/$/,
   "",
 );
-const requestTimeoutMs = 180_000;
+const requestTimeoutMs = 600_000;
 
 function createApiError(status: number, body: unknown): ApiError {
   const payload = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
