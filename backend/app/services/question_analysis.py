@@ -10,6 +10,7 @@ from app.chains.question_analysis import QuestionAnalysisOutput, build_question_
 from app.config import Settings
 from app.database.errors import ModelOutputError, ModelServiceError, translate_model_exception
 from app.models.model_roles import ModelRole
+from app.telemetry import emit_event
 from app.workflow.state import QuestionAnalysis
 
 logger = logging.getLogger(__name__)
@@ -33,10 +34,11 @@ class QuestionAnalysisService:
         if not question.strip():
             raise ModelServiceError("A non-empty question is required for analysis.")
         try:
-            logger.info(
-                "model_invocation role=%s model_id=%s",
-                ModelRole.QUESTION_ANALYSIS.value,
-                getattr(self, "model_id", None),
+            emit_event(
+                logger,
+                "model_invocation",
+                model_role=ModelRole.QUESTION_ANALYSIS.value,
+                model_id=getattr(self, "model_id", None),
             )
             output = self.chain.invoke(
                 {

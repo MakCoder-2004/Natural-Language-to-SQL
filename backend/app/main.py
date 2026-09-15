@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from time import perf_counter
 from typing import cast
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.health import router as health_router
@@ -16,6 +17,7 @@ from app.config import Settings, get_settings
 from app.database.errors import DatabaseServiceError
 from app.database.services import DatabaseServices, create_database_services
 from app.services.query_service import QueryService
+from app.telemetry import emit_event
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +85,23 @@ def create_app(
     )
     application.include_router(health_router)
     application.include_router(query_router)
+
+    @application.middleware("http")
+    async def request_telemetry(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        started = perf_counter()
+        response = await call_next(request)
+        emit_event(
+            logger,
+            "http_request_completed",
+            method=getattr(request, "method", ""),
+            path=request.url.path,
+            status_code=response.status_code,
+            duration_ms=round((perf_counter() - started) * 1000, 2),
+        )
+        return response
+
     return application
 
 

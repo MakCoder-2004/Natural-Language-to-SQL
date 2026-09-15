@@ -13,6 +13,7 @@ from app.database.errors import ModelOutputError, ModelServiceError, translate_m
 from app.models.model_roles import ModelRole
 from app.models.retrieval import RetrievalResult
 from app.models.sql import SqlProposal
+from app.telemetry import emit_event
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +38,11 @@ class SqlCorrectionService:
         """Return a new untrusted proposal from bounded validation feedback."""
 
         try:
-            logger.info(
-                "model_invocation role=%s model_id=%s",
-                ModelRole.SQL_CORRECTION.value,
-                getattr(self, "model_id", None),
+            emit_event(
+                logger,
+                "model_invocation",
+                model_role=ModelRole.SQL_CORRECTION.value,
+                model_id=getattr(self, "model_id", None),
             )
             output = self.chain.invoke(
                 {

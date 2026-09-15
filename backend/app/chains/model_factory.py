@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI
 from app.config import Settings
 from app.database.errors import ModelServiceError
 from app.models.model_roles import ModelRole
+from app.telemetry import emit_event
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ def create_chat_model(settings: Settings, role: ModelRole) -> Any:
             temperature=0,
             default_headers=default_headers or None,
         )
-        logger.info("model_configured role=%s model_id=%s", role.value, model_name)
+        emit_event(logger, "model_configured", model_role=role.value, model_id=model_name)
         return model
     except Exception as exc:
         raise ModelServiceError("The model integration could not be configured.") from exc

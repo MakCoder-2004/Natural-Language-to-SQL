@@ -12,6 +12,7 @@ from app.database.errors import ModelOutputError, ModelServiceError, translate_m
 from app.models.model_roles import ModelRole
 from app.models.retrieval import RetrievalResult
 from app.models.sql import SqlProposal
+from app.telemetry import emit_event
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +33,11 @@ class SqlGenerationService:
         if not question.strip():
             raise ModelServiceError("A non-empty question is required for SQL generation.")
         try:
-            logger.info(
-                "model_invocation role=%s model_id=%s",
-                ModelRole.SQL_GENERATION.value,
-                getattr(self, "model_id", None),
+            emit_event(
+                logger,
+                "model_invocation",
+                model_role=ModelRole.SQL_GENERATION.value,
+                model_id=getattr(self, "model_id", None),
             )
             output = self.chain.invoke(
                 {"question": question, "schema_context": retrieval.context_text}
