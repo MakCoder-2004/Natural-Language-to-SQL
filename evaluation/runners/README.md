@@ -3,13 +3,14 @@
 The runner scores sanitized normalized outcomes. It intentionally does not own a
 database connection or require live OpenRouter requests.
 
-From the repository root:
+From the repository root, using the backend's configured Python environment:
 
 ```powershell
-python evaluation/runners/run_evaluation.py `
-  --dataset evaluation/datasets/nl2sql_mvp_v1.json `
+cd backend
+uv run python ../evaluation/runners/run_evaluation.py `
+  --dataset ../evaluation/datasets/nl2sql_mvp_v1.json `
   --outcomes path/to/normalized-outcomes.json `
-  --output evaluation/reports/nl2sql-mvp.json
+  --output ../evaluation/reports/nl2sql-mvp.json
 ```
 
 The outcomes file contains one object per case with fields such as `id`,

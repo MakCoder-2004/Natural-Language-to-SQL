@@ -657,54 +657,54 @@ report for the MVP.
 
 ### Checklist
 
-- [ ] Add structured FastAPI logging.
-- [ ] Record query IDs and final statuses.
-- [ ] Record analysis, embedding, retrieval, generation, validation, correction, execution, and answer timings.
-- [ ] Record validation results, failure categories, and retry counts.
-- [ ] Record selected source schemas and tables without unnecessary sensitive values.
-- [ ] Record row counts and truncation state.
-- [ ] Avoid logging credentials and unnecessary customer data.
-- [ ] Add unit tests for request validation.
-- [ ] Add unit tests for structured model-output parsing.
-- [ ] Add unit tests for ambiguity and state policy.
-- [ ] Add unit tests for schema document construction.
-- [ ] Add unit tests for retrieval merging, ranking, and bounds.
-- [ ] Add unit tests for SQL parsing, statement policy, identifier checks, and limits.
-- [ ] Add unit tests for exact-SQL and version binding.
-- [ ] Add unit tests for result normalization and chart-shape selection.
-- [ ] Add security tests for write statements and DDL.
-- [ ] Add security tests for multi-statement and obfuscated SQL.
-- [ ] Add security tests for hallucinated tables and columns.
-- [ ] Add security tests for edited unsafe SQL.
-- [ ] Add security tests for Auto Mode bypass attempts.
-- [ ] Add security tests for prompt-injection text in database values.
-- [ ] Add integration tests for source introspection and fingerprinting.
-- [ ] Add integration tests for schema documents and index writes.
-- [ ] Add integration tests for vector and metadata retrieval.
-- [ ] Add integration tests for source execution, timeouts, and result limits.
-- [ ] Add integration tests proving source/index connection separation.
-- [ ] Add API tests for the complete query lifecycle.
-- [ ] Add frontend tests for the primary user journeys.
-- [ ] Add an end-to-end test from question through retrieval, validation, approval, source execution, table, and answer.
-- [ ] Add an end-to-end test proving edited SQL is revalidated before execution.
-- [ ] Create an evaluation dataset of approximately 50-100 questions.
-- [ ] Include lookup, filtering, aggregation, sorting, joins, date/time, nested, and multi-table cases.
-- [ ] Include ambiguous, impossible, unsafe, and adversarial questions.
-- [ ] Define expected concepts, relationships, filters, grouping, ordering, and result properties.
-- [ ] Implement repeatable evaluation runners.
-- [ ] Report SQL validity and safety.
-- [ ] Report schema retrieval recall and precision.
-- [ ] Report relationship accuracy.
-- [ ] Report semantic correctness and result correctness.
-- [ ] Report clarification accuracy and answer faithfulness.
-- [ ] Report latency by pipeline stage.
-- [ ] Record failure analysis and known limitations.
+- [x] Add structured FastAPI logging.
+- [x] Record query IDs and final statuses.
+- [x] Record analysis, embedding, retrieval, generation, validation, correction, execution, and answer timings.
+- [x] Record validation results, failure categories, and retry counts.
+- [x] Record selected source schemas and tables without unnecessary sensitive values.
+- [x] Record row counts and truncation state.
+- [x] Avoid logging credentials and unnecessary customer data.
+- [x] Add unit tests for request validation.
+- [x] Add unit tests for structured model-output parsing.
+- [x] Add unit tests for ambiguity and state policy.
+- [x] Add unit tests for schema document construction.
+- [x] Add unit tests for retrieval merging, ranking, and bounds.
+- [x] Add unit tests for SQL parsing, statement policy, identifier checks, and limits.
+- [x] Add unit tests for exact-SQL and version binding.
+- [x] Add unit tests for result normalization and chart-shape selection.
+- [x] Add security tests for write statements and DDL.
+- [x] Add security tests for multi-statement and obfuscated SQL.
+- [x] Add security tests for hallucinated tables and columns.
+- [x] Add security tests for edited unsafe SQL.
+- [x] Add security tests for Auto Mode bypass attempts.
+- [x] Add security tests for prompt-injection text in database values.
+- [x] Add integration tests for source introspection and fingerprinting.
+- [x] Add integration tests for schema documents and index writes.
+- [x] Add integration tests for vector and metadata retrieval.
+- [x] Add integration tests for source execution, timeouts, and result limits.
+- [x] Add integration tests proving source/index connection separation.
+- [x] Add API tests for the complete query lifecycle.
+- [x] Add frontend tests for the primary user journeys.
+- [x] Add an end-to-end test from question through retrieval, validation, approval, source execution, table, and answer.
+- [x] Add an end-to-end test proving edited SQL is revalidated before execution.
+- [x] Create an evaluation dataset of approximately 50-100 questions.
+- [x] Include lookup, filtering, aggregation, sorting, joins, date/time, nested, and multi-table cases.
+- [x] Include ambiguous, impossible, unsafe, and adversarial questions.
+- [x] Define expected concepts, relationships, filters, grouping, ordering, and result properties.
+- [x] Implement repeatable evaluation runners.
+- [x] Report SQL validity and safety.
+- [x] Report schema retrieval recall and precision.
+- [x] Report relationship accuracy.
+- [x] Report semantic correctness and result correctness.
+- [x] Report clarification accuracy and answer faithfulness.
+- [x] Report latency by pipeline stage.
+- [x] Record failure analysis and known limitations.
 
 ### Exit Criteria
 
-- [ ] Automated tests cover the major product, safety, and workflow risks.
-- [ ] Evaluation produces repeatable quality metrics.
-- [ ] Observability is useful without exposing credentials or unnecessary sensitive data.
+- [x] Automated tests cover the major product, safety, and workflow risks.
+- [x] Evaluation produces repeatable quality metrics.
+- [x] Observability is useful without exposing credentials or unnecessary sensitive data.
 
 ---
 
