@@ -105,6 +105,28 @@ def _pipeline(
     )
 
 
+def _workflow(
+    fixture: PostgresIntegrationFixture,
+    sql: str,
+) -> DeterministicQueryWorkflow:
+    settings = fixture_settings(fixture)
+    source = create_source_database(settings)
+    services = DatabaseServices(source=source)
+    from app.database.source_introspection import SourceIntrospector
+
+    snapshot = SourceIntrospector(source).introspect()
+    return DeterministicQueryWorkflow(
+        settings,
+        services,
+        analysis_service=_WorkflowAnalysis(),
+        retrieval_service=_Retrieval(snapshot),
+        sql_generation_service=_Generation(sql),
+        answer_service=_Answer(),
+        visualization_selector=_WorkflowVisualization(),  # type: ignore[arg-type]
+        snapshot_provider=lambda _: snapshot,
+    )
+
+
 @pytest.mark.integration
 def test_clear_question_produces_validated_normalized_result(
     postgres_fixture: PostgresIntegrationFixture,
@@ -197,3 +219,66 @@ def test_deterministic_workflow_auto_mode_executes_source_only_query(
     assert state.result is not None
     assert state.result.columns == ("event_count",)
     assert state.result.row_count == 1
+
+
+@pytest.mark.integration
+def test_review_approval_executes_exact_validated_sql(
+    postgres_fixture: PostgresIntegrationFixture,
+) -> None:
+    workflow = _workflow(
+        postgres_fixture,
+        "SELECT count(*) AS event_count FROM analytics.events",
+    )
+
+    ready = workflow.run("How many events exist?")
+    assert ready.proposal is not None
+    approved = workflow.approve(ready, sql_version=ready.proposal.sql_hash)
+    completed = workflow.execute_approved(approved)
+
+    assert completed.state == QueryState.COMPLETED
+    assert completed.result is not None
+    assert completed.result.executed_sql_hash == ready.proposal.sql_hash
+
+
+@pytest.mark.integration
+def test_review_edit_requires_new_approval(
+    postgres_fixture: PostgresIntegrationFixture,
+) -> None:
+    workflow = _workflow(
+        postgres_fixture,
+        "SELECT count(*) AS event_count FROM analytics.events",
+    )
+
+    ready = workflow.run("How many events exist?")
+    edited = workflow.edit_sql(
+        ready,
+        "SELECT count(*) AS total_events FROM analytics.events",
+    )
+
+    assert edited.state == QueryState.READY_FOR_REVIEW
+    assert edited.approval_sql_hash is None
+    assert edited.validation is not None and edited.validation.passed
+    assert edited.proposal is not None
+    approved = workflow.approve(edited, sql_version=edited.proposal.sql_hash)
+    completed = workflow.execute_approved(approved)
+
+    assert completed.result is not None
+    assert completed.result.executed_sql_hash == edited.proposal.sql_hash
+
+
+@pytest.mark.integration
+def test_regeneration_preserves_review_gate(
+    postgres_fixture: PostgresIntegrationFixture,
+) -> None:
+    workflow = _workflow(
+        postgres_fixture,
+        "SELECT count(*) AS event_count FROM analytics.events",
+    )
+
+    ready = workflow.run("How many events exist?")
+    regenerated = workflow.regenerate(ready)
+
+    assert regenerated.state == QueryState.READY_FOR_REVIEW
+    assert regenerated.question == ready.question
+    assert regenerated.query_id == ready.query_id
+    assert regenerated.result is None
