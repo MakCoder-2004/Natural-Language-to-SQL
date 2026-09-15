@@ -26,6 +26,7 @@ services:
       OPENROUTER_SITE_NAME: ${OPENROUTER_SITE_NAME:-}
       MODEL_PROVIDER: ${MODEL_PROVIDER:-openrouter}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-openrouter}
       QUESTION_MODEL: ${QUESTION_MODEL:-nex-agi/nex-n2.5-pro:free}
       SQL_MODEL: ${SQL_MODEL:-nex-agi/nex-n2.5-pro:free}
       SQL_CORRECTION_MODEL: ${SQL_CORRECTION_MODEL:-nex-agi/nex-n2.5-pro:free}

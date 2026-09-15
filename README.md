@@ -169,10 +169,11 @@ use a local Ollama chat model. The supplied local configuration uses
 `qwen3.5:4b` for question analysis, SQL generation, SQL correction, and answer
 generation. Ollama must be running on the host before starting the backend.
 
-Schema indexing and retrieval still use the configured OpenRouter embedding model
-(`nvidia/nemotron-3-embed-1b:free` by default). Changing the embedding model
-requires rebuilding the schema index; changing a chat model does not require
-workflow-code changes. Multiple logical chat roles may share one model.
+Schema indexing and retrieval use the separately configured `EMBEDDING_PROVIDER`
+and `EMBEDDING_MODEL`. The supplied local configuration uses Ollama's
+`mxbai-embed-large`. Changing the embedding model or provider requires rebuilding
+the schema index because vector dimensions may change. Multiple logical chat roles
+may share one model.
 
 See [Model Replacement](docs/models/model-replacement.md) for configuration,
 timeouts, failure behavior, and the required index rebuild procedure after changing

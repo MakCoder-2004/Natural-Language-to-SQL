@@ -81,6 +81,7 @@ class Settings(BaseSettings):
     openrouter_site_name: str | None = None
     model_provider: Literal["openrouter", "ollama"] = "openrouter"
     ollama_base_url: str = "http://localhost:11434"
+    embedding_provider: Literal["openrouter", "ollama"] = "openrouter"
 
     question_model: str | None = None
     sql_model: str | None = None

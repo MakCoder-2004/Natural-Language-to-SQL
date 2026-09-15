@@ -112,3 +112,26 @@ def test_create_embedding_provider_requires_backend_credentials() -> None:
 
     with pytest.raises(EmbeddingServiceError):
         create_embedding_provider(settings)
+
+
+def test_create_embedding_provider_uses_ollama_without_openrouter_credentials(
+    monkeypatch: MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeOllamaEmbeddings:
+        def __init__(self, **kwargs: Any) -> None:
+            captured.update(kwargs)
+
+    monkeypatch.setattr("app.retrieval.embeddings.OllamaEmbeddings", FakeOllamaEmbeddings)
+    settings = Settings(
+        _env_file=None,
+        embedding_provider="ollama",
+        ollama_base_url="http://ollama:11434",
+        embedding_model="mxbai-embed-large",
+    )
+
+    provider = create_embedding_provider(settings)
+
+    assert provider.model_id == "mxbai-embed-large"
+    assert captured["base_url"] == "http://ollama:11434"

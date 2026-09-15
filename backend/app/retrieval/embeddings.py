@@ -7,6 +7,7 @@ import math
 from collections.abc import Sequence
 from typing import Any, Protocol
 
+from langchain_ollama import OllamaEmbeddings
 from langchain_openai import OpenAIEmbeddings
 
 from app.config import Settings
@@ -61,15 +62,30 @@ class LangChainEmbeddingProvider:
 
 
 def create_embedding_provider(settings: Settings) -> LangChainEmbeddingProvider:
-    """Create LangChain's OpenAI-compatible embedding integration for OpenRouter."""
+    """Create the configured LangChain embedding integration."""
 
-    api_key = settings.openrouter_api_key
     model = settings.embedding_model
-    if api_key is None or not api_key.get_secret_value().strip():
-        raise EmbeddingServiceError("OPENROUTER_API_KEY is required for indexing.")
     if model is None or not model.strip():
         raise EmbeddingServiceError("EMBEDDING_MODEL is required for indexing.")
     try:
+        if settings.embedding_provider == "ollama":
+            embedder: Any = OllamaEmbeddings(
+                model=model,
+                base_url=settings.ollama_base_url,
+                client_kwargs={"timeout": settings.embedding_request_timeout_seconds},
+            )
+            emit_event(
+                logger,
+                "model_configured",
+                model_role=ModelRole.EMBEDDING.value,
+                model_provider="ollama",
+                model_id=model,
+            )
+            return LangChainEmbeddingProvider(embedder, model)
+
+        api_key = settings.openrouter_api_key
+        if api_key is None or not api_key.get_secret_value().strip():
+            raise EmbeddingServiceError("OPENROUTER_API_KEY is required for indexing.")
         default_headers: dict[str, str] = {}
         if settings.openrouter_site_url:
             default_headers["HTTP-Referer"] = settings.openrouter_site_url
