@@ -1599,6 +1599,7 @@ SOURCE_DATABASE_URL=<secret connection URL>
 INDEX_DATABASE_URL=<local index connection URL>
 SOURCE_SCHEMA_SCOPE=<configured source schema scope>
 MAX_CORRECTION_RETRIES=2
+MAX_REGENERATION_COUNT=<configured limit>
 MAX_RETURNED_ROWS=<configured limit>
 MAX_RESULT_BYTES=<configured limit>
 QUERY_TIMEOUT_SECONDS=<configured limit>
