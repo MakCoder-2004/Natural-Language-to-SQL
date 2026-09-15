@@ -68,7 +68,9 @@ def _safe_message(code: str) -> str:
     messages = {
         "database_unavailable": "The source database is currently unavailable.",
         "database_permission_denied": "The configured database role lacks required access.",
-        "embedding_error": "Schema indexing requires a configured OpenRouter embedding model.",
+        "embedding_error": (
+            "The OpenRouter embedding request failed. Check the API key, credits, and rate limits."
+        ),
         "index_error": "The schema index could not be refreshed safely.",
         "index_not_ready": "The schema index is not ready for queries.",
         "query_timeout": "The source query exceeded the configured time limit.",
