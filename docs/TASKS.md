@@ -431,33 +431,33 @@ approval, revalidation, and execution gates.
 
 ### Checklist
 
-- [ ] Implement Review Mode as the default execution mode.
-- [ ] Add explicit Auto Mode support.
-- [ ] Require approval before Review Mode execution.
-- [ ] Prevent approval when validation fails.
-- [ ] Store the exact proposed SQL and current SQL version.
-- [ ] Support SQL editing in Review Mode.
-- [ ] Revalidate edited SQL on the backend.
-- [ ] Invalidate stale approvals after SQL edits.
-- [ ] Display interpretation, assumptions, tables, validation, and warnings.
-- [ ] Display read-only status.
-- [ ] Display approved-source status.
-- [ ] Display multi-statement status.
-- [ ] Display resource-limit status.
-- [ ] Implement safe regeneration.
-- [ ] Preserve the original natural-language question through clarification and review.
-- [ ] Add tests for approval and execution gates.
-- [ ] Add tests for edited valid SQL.
-- [ ] Add tests for edited unsafe SQL.
-- [ ] Add tests for stale approvals.
-- [ ] Add tests proving Auto Mode still validates SQL.
+- [x] Implement Review Mode as the default execution mode.
+- [x] Add explicit Auto Mode support.
+- [x] Require approval before Review Mode execution.
+- [x] Prevent approval when validation fails.
+- [x] Store the exact proposed SQL and current SQL version.
+- [x] Support SQL editing in Review Mode.
+- [x] Revalidate edited SQL on the backend.
+- [x] Invalidate stale approvals after SQL edits.
+- [x] Display interpretation, assumptions, tables, validation, and warnings.
+- [x] Display read-only status.
+- [x] Display approved-source status.
+- [x] Display multi-statement status.
+- [x] Display resource-limit status.
+- [x] Implement safe regeneration.
+- [x] Preserve the original natural-language question through clarification and review.
+- [x] Add tests for approval and execution gates.
+- [x] Add tests for edited valid SQL.
+- [x] Add tests for edited unsafe SQL.
+- [x] Add tests for stale approvals.
+- [x] Add tests proving Auto Mode still validates SQL.
 
 ### Exit Criteria
 
-- [ ] Review Mode cannot execute without explicit approval.
-- [ ] Auto Mode performs deterministic validation before execution.
-- [ ] The executed SQL is exactly the SQL that was validated and approved.
-- [ ] Regeneration does not silently execute a new proposal.
+- [x] Review Mode cannot execute without explicit approval.
+- [x] Auto Mode performs deterministic validation before execution.
+- [x] The executed SQL is exactly the SQL that was validated and approved.
+- [x] Regeneration does not silently execute a new proposal.
 
 ---
 
