@@ -278,8 +278,8 @@ Question -> schema retrieval -> SQL generation -> validation -> execution -> res
 
 ### Checklist
 
-- [ ] Define request, response, and internal domain models.
-- [ ] Define the query ID and query lifecycle identifiers.
+- [x] Define request, response, and internal domain models.
+- [x] Define the query ID and query lifecycle identifiers.
 - [ ] Implement natural-language question input handling.
 - [ ] Implement initial SQL generation using LangChain.
 - [ ] Define structured SQL proposal output.

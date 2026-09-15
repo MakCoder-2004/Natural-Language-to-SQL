@@ -71,3 +71,21 @@ class NoRelevantSchemaError(IndexServiceError):
     """Raised when retrieval cannot establish credible schema context."""
 
     error_code = "no_relevant_schema"
+
+
+class ModelServiceError(RuntimeError):
+    """Raised when a configured model cannot produce a valid response."""
+
+    error_code = "model_error"
+
+
+class QueryValidationError(RuntimeError):
+    """Raised when generated SQL cannot be authorized."""
+
+    error_code = "query_validation_error"
+
+
+class QueryExecutionError(RuntimeError):
+    """Raised when an authorized source query cannot complete safely."""
+
+    error_code = "query_execution_error"

@@ -38,6 +38,8 @@ DEFAULT_RETRIEVAL_MIN_VECTOR_SIMILARITY: Final[float] = 0.20
 DEFAULT_RETRIEVAL_VECTOR_WEIGHT: Final[float] = 0.60
 DEFAULT_RETRIEVAL_KEYWORD_WEIGHT: Final[float] = 0.40
 DEFAULT_RETRIEVAL_RRF_CONSTANT: Final[int] = 60
+DEFAULT_MAX_QUESTION_LENGTH: Final[int] = 2_000
+DEFAULT_MODEL_REQUEST_TIMEOUT_SECONDS: Final[int] = 60
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,6 +95,8 @@ class Settings(BaseSettings):
     index_pool_timeout_seconds: int = DEFAULT_INDEX_POOL_TIMEOUT_SECONDS
     index_pool_recycle_seconds: int = DEFAULT_INDEX_POOL_RECYCLE_SECONDS
     max_correction_retries: int = MAX_ALLOWED_CORRECTION_RETRIES
+    max_question_length: int = DEFAULT_MAX_QUESTION_LENGTH
+    model_request_timeout_seconds: int = DEFAULT_MODEL_REQUEST_TIMEOUT_SECONDS
     max_returned_rows: int = 1000
     max_result_bytes: int = 5_000_000
     query_timeout_seconds: int = 30
@@ -131,6 +135,8 @@ class Settings(BaseSettings):
         "max_returned_rows",
         "max_result_bytes",
         "query_timeout_seconds",
+        "max_question_length",
+        "model_request_timeout_seconds",
         "embedding_batch_size",
         "embedding_request_timeout_seconds",
         "retrieval_vector_candidate_limit",
