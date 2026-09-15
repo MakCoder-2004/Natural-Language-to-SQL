@@ -726,35 +726,35 @@ and final MVP evidence.
 
 ### Checklist
 
-- [ ] Finalize Docker Compose startup and service dependencies.
-- [ ] Configure persistent local index storage.
-- [ ] Verify clean-environment startup from documented instructions.
-- [ ] Verify `.env.example` contains placeholders only.
-- [ ] Scan the repository for accidentally committed secrets.
-- [ ] Write architecture documentation.
-- [ ] Write security and threat-boundary documentation.
-- [ ] Write schema retrieval documentation.
-- [ ] Write evaluation documentation.
-- [ ] Document source and index database responsibilities.
-- [ ] Document controlled agent boundaries.
-- [ ] Document SQL validation and execution gates.
-- [ ] Document Review Mode and Auto Mode.
-- [ ] Document schema indexing and refresh procedures.
-- [ ] Document testing and evaluation commands.
-- [ ] Create or update architecture diagrams.
-- [ ] Add a demo walkthrough.
-- [ ] Add representative safe example queries and responses where appropriate.
-- [ ] Review README setup instructions from a clean environment.
-- [ ] Confirm no fixed business schema is required.
-- [ ] Confirm test fixtures are isolated from production schema behavior.
-- [ ] Confirm deferred enhancements remain out of MVP scope.
-- [ ] Record final evaluation results and known limitations.
+- [x] Finalize Docker Compose startup and service dependencies.
+- [x] Configure persistent local index storage.
+- [x] Verify clean-environment startup from documented instructions.
+- [x] Verify `.env.example` contains placeholders only.
+- [x] Scan the repository for accidentally committed secrets.
+- [x] Write architecture documentation.
+- [x] Write security and threat-boundary documentation.
+- [x] Write schema retrieval documentation.
+- [x] Write evaluation documentation.
+- [x] Document source and index database responsibilities.
+- [x] Document controlled agent boundaries.
+- [x] Document SQL validation and execution gates.
+- [x] Document Review Mode and Auto Mode.
+- [x] Document schema indexing and refresh procedures.
+- [x] Document testing and evaluation commands.
+- [x] Create or update architecture diagrams.
+- [x] Add a demo walkthrough.
+- [x] Add representative safe example queries and responses where appropriate.
+- [x] Review README setup instructions from a clean environment.
+- [x] Confirm no fixed business schema is required.
+- [x] Confirm test fixtures are isolated from production schema behavior.
+- [x] Confirm deferred enhancements remain out of MVP scope.
+- [x] Record final evaluation results and known limitations.
 
 ### Exit Criteria
 
-- [ ] A new developer can run the system using documented steps.
-- [ ] The project clearly demonstrates safe, schema-aware natural-language-to-SQL behavior.
-- [ ] The final demo covers Review Mode, SQL editing, revalidation, execution, results, and grounded answers.
+- [x] A new developer can run the system using documented steps.
+- [x] The project clearly demonstrates safe, schema-aware natural-language-to-SQL behavior.
+- [x] The final demo covers Review Mode, SQL editing, revalidation, execution, results, and grounded answers.
 
 ---
 
@@ -762,30 +762,30 @@ and final MVP evidence.
 
 These checks must be complete before declaring the MVP finished.
 
-- [ ] Dynamic source database integration works.
-- [ ] The same source database is used for introspection and read-only execution.
-- [ ] The separate local pgvector index works.
-- [ ] Hybrid retrieval works.
-- [ ] Relationship expansion is bounded.
-- [ ] Controlled agent boundaries are enforced.
-- [ ] LCEL workflow is complete.
-- [ ] Ambiguous questions request clarification instead of guessing.
-- [ ] SQL validation and read-only execution are enforced.
-- [ ] Unsafe, multi-statement, hallucinated, and edited unsafe SQL are rejected.
-- [ ] Query timeouts, row limits, and result-size limits are enforced.
-- [ ] Correction is limited to two attempts.
-- [ ] Review Mode is the default.
-- [ ] Auto Mode validates before execution.
-- [ ] Edited SQL is revalidated by the backend.
-- [ ] Results and grounded answers are displayed.
-- [ ] Suitable results can be visualized.
-- [ ] FastAPI endpoint contracts are tested.
-- [ ] React user journeys are tested.
-- [ ] Model roles are configuration-driven.
-- [ ] Structured observability is implemented without leaking sensitive data.
-- [ ] Evaluation dataset and quality reports exist.
-- [ ] Docker Compose and local setup are reproducible.
-- [ ] Architecture, security, retrieval, evaluation, and README documentation are complete.
+- [x] Dynamic source database integration works.
+- [x] The same source database is used for introspection and read-only execution.
+- [x] The separate local pgvector index works.
+- [x] Hybrid retrieval works.
+- [x] Relationship expansion is bounded.
+- [x] Controlled agent boundaries are enforced.
+- [x] LCEL workflow is complete.
+- [x] Ambiguous questions request clarification instead of guessing.
+- [x] SQL validation and read-only execution are enforced.
+- [x] Unsafe, multi-statement, hallucinated, and edited unsafe SQL are rejected.
+- [x] Query timeouts, row limits, and result-size limits are enforced.
+- [x] Correction is limited to two attempts.
+- [x] Review Mode is the default.
+- [x] Auto Mode validates before execution.
+- [x] Edited SQL is revalidated by the backend.
+- [x] Results and grounded answers are displayed.
+- [x] Suitable results can be visualized.
+- [x] FastAPI endpoint contracts are tested.
+- [x] React user journeys are tested.
+- [x] Model roles are configuration-driven.
+- [x] Structured observability is implemented without leaking sensitive data.
+- [x] Evaluation dataset and quality reports exist.
+- [x] Docker Compose and local setup are reproducible.
+- [x] Architecture, security, retrieval, evaluation, and README documentation are complete.
 
 ## Deferred Enhancements
 
