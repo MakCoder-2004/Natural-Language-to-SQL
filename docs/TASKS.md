@@ -280,18 +280,18 @@ Question -> schema retrieval -> SQL generation -> validation -> execution -> res
 
 - [x] Define request, response, and internal domain models.
 - [x] Define the query ID and query lifecycle identifiers.
-- [ ] Implement natural-language question input handling.
-- [ ] Implement initial SQL generation using LangChain.
-- [ ] Define structured SQL proposal output.
-- [ ] Include interpretation, tables, assumptions, warnings, and SQL in proposals.
-- [ ] Connect SQL generation to retrieved schema context.
+- [x] Implement natural-language question input handling.
+- [x] Implement initial SQL generation using LangChain.
+- [x] Define structured SQL proposal output.
+- [x] Include interpretation, tables, assumptions, warnings, and SQL in proposals.
+- [x] Connect SQL generation to retrieved schema context.
 - [ ] Define a validation service interface before implementing pipeline execution.
 - [ ] Route generated SQL through the validation service.
 - [ ] Route execution only through the source database service.
 - [ ] Normalize returned columns and rows.
 - [ ] Represent empty results distinctly from failures.
 - [ ] Represent truncation and result limits in responses.
-- [ ] Generate a grounded answer from executed results.
+- [x] Generate a grounded answer from executed results.
 - [ ] Generate a basic visualization selection result.
 - [ ] Add safe handling for model, validation, index, and database failures.
 - [ ] Add a backend integration test for a successful clear question.
