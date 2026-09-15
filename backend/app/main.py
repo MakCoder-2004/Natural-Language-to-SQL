@@ -11,9 +11,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.health import router as health_router
+from app.api.routes.query import router as query_router
 from app.config import Settings, get_settings
 from app.database.errors import DatabaseServiceError
 from app.database.services import DatabaseServices, create_database_services
+from app.services.query_service import QueryService
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,8 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
             logger.warning("database_services_unavailable error_code=%s", type(exc).__name__)
             database_services = DatabaseServices()
     application.state.database_services = database_services
+    if getattr(application.state, "query_service", None) is None:
+        application.state.query_service = QueryService(settings, database_services)
     issues = settings.configuration_issues()
     if issues:
         logger.warning(
@@ -50,7 +54,9 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
 
 
 def create_app(
-    settings: Settings | None = None, database_services: DatabaseServices | None = None
+    settings: Settings | None = None,
+    database_services: DatabaseServices | None = None,
+    query_service: QueryService | None = None,
 ) -> FastAPI:
     """Create the FastAPI application with optional test settings."""
 
@@ -61,6 +67,7 @@ def create_app(
         lifespan=lifespan,
     )
     application.state.settings = resolved_settings
+    application.state.query_service = query_service
     if database_services is not None:
         application.state.database_services = database_services
     application.add_middleware(
@@ -71,10 +78,11 @@ def create_app(
             if origin.strip()
         ],
         allow_credentials=False,
-        allow_methods=["GET"],
+        allow_methods=["GET", "POST"],
         allow_headers=["*"],
     )
     application.include_router(health_router)
+    application.include_router(query_router)
     return application
 
 
