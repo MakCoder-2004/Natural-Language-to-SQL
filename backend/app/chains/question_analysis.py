@@ -16,18 +16,18 @@ class QuestionAnalysisOutput(BaseModel):
 
     classification: Literal["ANSWERABLE", "CLARIFICATION_REQUIRED", "IMPOSSIBLE", "UNSUPPORTED"]
     requested_metric: str = Field(min_length=1)
-    entities: list[str] = Field(default_factory=list)
-    filters: list[str] = Field(default_factory=list)
+    entities: list[str] | None = None
+    filters: list[str] | None = None
     time_range: str | None = None
-    grouping: list[str] = Field(default_factory=list)
+    grouping: list[str] | None = None
     ordering: str | None = None
     limit: int | None = Field(default=None, ge=1)
-    likely_source_tables: list[str] = Field(default_factory=list)
-    ambiguous_terms: list[str] = Field(default_factory=list)
+    likely_source_tables: list[str] | None = None
+    ambiguous_terms: list[str] | None = None
     clarification_question: str | None = None
-    clarification_choices: list[str] = Field(default_factory=list, max_length=5)
+    clarification_choices: list[str] | None = Field(default=None, max_length=5)
     answerability_reason: str = Field(min_length=1)
-    warnings: list[str] = Field(default_factory=list)
+    warnings: list[str] | None = None
 
 
 def build_question_analysis_chain(model: Any) -> Any:

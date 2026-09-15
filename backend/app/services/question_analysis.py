@@ -53,18 +53,18 @@ class QuestionAnalysisService:
             return QuestionAnalysis(
                 classification=output.classification,
                 requested_metric=output.requested_metric,
-                entities=tuple(output.entities),
-                filters=tuple(output.filters),
+                entities=tuple(output.entities or ()),
+                filters=tuple(output.filters or ()),
                 time_range=output.time_range,
-                grouping=tuple(output.grouping),
+                grouping=tuple(output.grouping or ()),
                 ordering=output.ordering,
                 limit=output.limit,
-                likely_source_tables=tuple(output.likely_source_tables),
-                ambiguous_terms=tuple(output.ambiguous_terms),
+                likely_source_tables=tuple(output.likely_source_tables or ()),
+                ambiguous_terms=tuple(output.ambiguous_terms or ()),
                 clarification_question=output.clarification_question,
-                clarification_choices=tuple(output.clarification_choices),
+                clarification_choices=tuple(output.clarification_choices or ()),
                 answerability_reason=output.answerability_reason,
-                warnings=tuple(output.warnings),
+                warnings=tuple(output.warnings or ()),
             )
         except ModelServiceError:
             raise
