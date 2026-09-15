@@ -14,6 +14,7 @@ _DISALLOWED_KEYS = frozenset(
     {
         "alter",
         "attach",
+        "copy",
         "command",
         "commit",
         "create",
@@ -27,10 +28,37 @@ _DISALLOWED_KEYS = frozenset(
         "revoke",
         "rollback",
         "set",
+        "savepoint",
         "transaction",
         "truncate",
         "update",
         "use",
+        "into",
+        "lock",
+    }
+)
+
+_DISALLOWED_FUNCTIONS = frozenset(
+    {
+        "dblink",
+        "lo_close",
+        "lo_create",
+        "lo_export",
+        "lo_import",
+        "lo_unlink",
+        "nextval",
+        "pg_advisory_lock",
+        "pg_advisory_lock_shared",
+        "pg_advisory_unlock",
+        "pg_advisory_unlock_all",
+        "pg_advisory_unlock_shared",
+        "pg_cancel_backend",
+        "pg_sleep",
+        "pg_sleep_for",
+        "pg_sleep_until",
+        "pg_terminate_backend",
+        "set_config",
+        "setval",
     }
 )
 
@@ -68,6 +96,8 @@ class SqlValidationService:
             )
         if any(node.key in _DISALLOWED_KEYS for node in statement.walk()):
             return SqlValidationResult.rejected(sql, errors=("not_read_only",))
+        if any(self._function_name(node) in _DISALLOWED_FUNCTIONS for node in statement.walk()):
+            return SqlValidationResult.rejected(sql, errors=("suspicious_function",))
 
         source_relations: dict[tuple[str, str], RelationMetadata] = {
             (schema.name.lower(), relation.name.lower()): relation
@@ -124,12 +154,22 @@ class SqlValidationService:
             if table_name.lower() in cte_names:
                 continue
             schema_name = table.db
+            if table.catalog:
+                errors.append("index_database_reference")
+                continue
+            if schema_name and not any(schema_name.lower() == key[0] for key in source_relations):
+                errors.append("disallowed_schema")
+                continue
             candidates = (
                 ((schema_name.lower(), table_name.lower()),)
                 if schema_name
                 else tuple(key for key in source_relations if key[1] == table_name.lower())
             )
-            matching = next((key for key in candidates if key in source_relations), None)
+            matching_candidates = tuple(key for key in candidates if key in source_relations)
+            if not schema_name and len(matching_candidates) > 1:
+                errors.append("ambiguous_relation")
+                continue
+            matching = matching_candidates[0] if matching_candidates else None
             if matching is None:
                 errors.append("unknown_relation")
                 continue
@@ -193,8 +233,21 @@ class SqlValidationService:
             if not matching_columns:
                 errors.append("unknown_column")
                 continue
+            if reference is None and len(matching_columns) > 1:
+                errors.append("ambiguous_column")
+                continue
             for matched_reference, _ in matching_columns:
                 referenced.add(
                     f"{matched_reference.schema_name}.{matched_reference.relation_name}.{column_name}"
                 )
         return errors, referenced
+
+    @staticmethod
+    def _function_name(node: exp.Expression) -> str:
+        """Return a normalized function name without trusting SQL text matching."""
+
+        if isinstance(node, exp.Anonymous):
+            return node.name.lower()
+        if isinstance(node, exp.Func):
+            return node.sql_name().lower()
+        return ""

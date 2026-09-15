@@ -1,5 +1,6 @@
 """Unit tests for conservative SQL validation."""
 
+import pytest
 from app.database.models import (
     DatabaseIdentity,
     RelationMetadata,
@@ -78,3 +79,89 @@ def test_read_only_cte_and_aliases_are_supported() -> None:
 
     assert result.passed
     assert result.referenced_relations == ("analytics.events",)
+
+
+@pytest.mark.parametrize(
+    ("sql", "error"),
+    [
+        ("INSERT INTO analytics.events (event_id) VALUES (1)", "not_read_only"),
+        ("DELETE FROM analytics.events", "not_read_only"),
+        (
+            "MERGE INTO analytics.events USING analytics.events ON false WHEN MATCHED THEN DELETE",
+            "not_read_only",
+        ),
+        ("CREATE TABLE analytics.nope (id integer)", "not_read_only"),
+        ("ALTER TABLE analytics.events ADD COLUMN nope text", "not_read_only"),
+        ("DROP TABLE analytics.events", "not_read_only"),
+        ("TRUNCATE analytics.events", "not_read_only"),
+        ("GRANT SELECT ON analytics.events TO public", "not_read_only"),
+        ("REVOKE SELECT ON analytics.events FROM public", "not_read_only"),
+        ("SELECT * INTO analytics.copy_of_events FROM analytics.events", "not_read_only"),
+        ("SELECT * FROM analytics.events FOR UPDATE", "not_read_only"),
+        ("SELECT pg_sleep(1)", "suspicious_function"),
+        ("SELECT nextval('events_event_id_seq')", "suspicious_function"),
+    ],
+)
+def test_statement_policy_rejects_unsafe_categories(sql: str, error: str) -> None:
+    result = SqlValidationService().validate(sql, _snapshot())
+
+    assert not result.passed
+    assert error in result.blocking_errors
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT 1; SELECT 2",
+        "SELECT 1 /* comment */ ; /* another comment */ SELECT 2",
+        "/* harmless prefix */ SELECT 1; -- hidden second statement\n SELECT 2",
+    ],
+)
+def test_comment_and_formatting_obfuscation_does_not_bypass_statement_policy(sql: str) -> None:
+    result = SqlValidationService().validate(sql, _snapshot())
+
+    assert not result.passed
+    assert result.blocking_errors == ("multiple_statements",)
+
+
+def test_out_of_scope_schema_and_database_qualified_references_are_rejected() -> None:
+    validator = SqlValidationService()
+
+    out_of_scope = validator.validate("SELECT * FROM internal.events", _snapshot())
+    database_qualified = validator.validate("SELECT * FROM index_db.analytics.events", _snapshot())
+
+    assert out_of_scope.blocking_errors == ("disallowed_schema",)
+    assert database_qualified.blocking_errors == ("index_database_reference",)
+
+
+def test_data_modifying_cte_is_rejected() -> None:
+    result = SqlValidationService().validate(
+        "WITH changed AS (DELETE FROM analytics.events RETURNING event_id) SELECT * FROM changed",
+        _snapshot(),
+    )
+
+    assert not result.passed
+    assert result.blocking_errors == ("not_read_only",)
+
+
+def test_ambiguous_unqualified_columns_are_rejected() -> None:
+    snapshot = _snapshot()
+    accounts = RelationMetadata(
+        schema_name="analytics",
+        name="accounts",
+        kind="table",
+        columns=(SourceColumnMetadata("event_name", 1, "text", True),),
+    )
+    snapshot = SourceSchemaSnapshot(
+        identity=snapshot.identity,
+        scope=snapshot.scope,
+        schemas=(SchemaMetadata("analytics", (accounts, snapshot.schemas[0].relations[0])),),
+        fingerprint=snapshot.fingerprint,
+    )
+
+    result = SqlValidationService().validate(
+        "SELECT event_name FROM analytics.accounts JOIN analytics.events ON true",
+        snapshot,
+    )
+
+    assert result.blocking_errors == ("ambiguous_column",)
