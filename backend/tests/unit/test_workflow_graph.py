@@ -329,3 +329,30 @@ def test_edited_sql_cannot_retain_an_existing_approval() -> None:
     edited = workflow.edit_sql(approved.evolve(state=QueryState.READY_FOR_REVIEW), "SELECT 2")
 
     assert edited.approval_sql_hash is None
+
+
+def test_regeneration_preserves_context_and_stops_for_review() -> None:
+    workflow = _workflow()
+    ready = workflow.run("count values", clarification_context="Only completed values")
+
+    regenerated = workflow.regenerate(ready)
+
+    assert regenerated.state == QueryState.READY_FOR_REVIEW
+    assert regenerated.query_id == ready.query_id
+    assert regenerated.question == ready.question
+    assert regenerated.clarification_context == ready.clarification_context
+    assert regenerated.execution_mode == "REVIEW"
+    assert regenerated.regeneration_count == 1
+    assert regenerated.result is None
+    assert regenerated.approval_sql_hash is None
+    assert regenerated.original_proposal == ready.original_proposal
+    assert any(record.to_state == QueryState.REGENERATING for record in regenerated.transitions)
+
+
+def test_regeneration_is_bounded() -> None:
+    workflow = _workflow(max_regeneration_count=1)
+    ready = workflow.run("count values")
+
+    regenerated = workflow.regenerate(ready)
+    with pytest.raises(WorkflowError, match="maximum number"):
+        workflow.regenerate(regenerated)

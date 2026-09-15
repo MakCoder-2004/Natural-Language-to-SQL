@@ -24,8 +24,9 @@ ALLOWED_TRANSITIONS: dict[QueryState, frozenset[QueryState]] = {
         }
     ),
     QueryState.SQL_CORRECTION: frozenset({QueryState.SQL_GENERATED, QueryState.FAILED}),
+    QueryState.REGENERATING: frozenset({QueryState.SQL_GENERATED, QueryState.FAILED}),
     QueryState.READY_FOR_REVIEW: frozenset(
-        {QueryState.EDITED, QueryState.APPROVED, QueryState.EXECUTING}
+        {QueryState.EDITED, QueryState.REGENERATING, QueryState.APPROVED, QueryState.EXECUTING}
     ),
     QueryState.EDITED: frozenset({QueryState.VALIDATING}),
     QueryState.APPROVED: frozenset({QueryState.EXECUTING}),

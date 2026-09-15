@@ -13,6 +13,7 @@ from sqlalchemy.exc import ArgumentError
 
 DEFAULT_SOURCE_SCHEMA_SCOPE: Final[str] = "public"
 MAX_ALLOWED_CORRECTION_RETRIES: Final[int] = 2
+DEFAULT_MAX_REGENERATION_COUNT: Final[int] = 3
 SYSTEM_SCHEMAS: Final[frozenset[str]] = frozenset({"information_schema", "pg_catalog", "pg_toast"})
 DEFAULT_DATABASE_CONNECT_TIMEOUT_SECONDS: Final[int] = 10
 DEFAULT_SOURCE_POOL_SIZE: Final[int] = 5
@@ -95,6 +96,7 @@ class Settings(BaseSettings):
     index_pool_timeout_seconds: int = DEFAULT_INDEX_POOL_TIMEOUT_SECONDS
     index_pool_recycle_seconds: int = DEFAULT_INDEX_POOL_RECYCLE_SECONDS
     max_correction_retries: int = MAX_ALLOWED_CORRECTION_RETRIES
+    max_regeneration_count: int = DEFAULT_MAX_REGENERATION_COUNT
     max_question_length: int = DEFAULT_MAX_QUESTION_LENGTH
     model_request_timeout_seconds: int = DEFAULT_MODEL_REQUEST_TIMEOUT_SECONDS
     max_returned_rows: int = 1000
@@ -135,6 +137,7 @@ class Settings(BaseSettings):
         "max_returned_rows",
         "max_result_bytes",
         "query_timeout_seconds",
+        "max_regeneration_count",
         "max_question_length",
         "model_request_timeout_seconds",
         "embedding_batch_size",

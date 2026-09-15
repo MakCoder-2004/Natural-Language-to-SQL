@@ -147,6 +147,28 @@ class DeterministicQueryWorkflow:
         approved = state.evolve(approval_sql_hash=state.validation.sql_hash)
         return transition(approved, QueryState.APPROVED, reason="review approval received")
 
+    def regenerate(self, state: QueryWorkflowState) -> QueryWorkflowState:
+        """Create and validate a new proposal without authorizing execution."""
+
+        if state.state != QueryState.READY_FOR_REVIEW:
+            raise WorkflowError("Only a review-ready query can be regenerated.")
+        if state.retrieval is None:
+            raise WorkflowError("Regeneration requires completed schema retrieval.")
+        if state.regeneration_count >= self.settings.max_regeneration_count:
+            raise WorkflowError("The maximum number of regenerations has been reached.")
+        regenerating = transition(state, QueryState.REGENERATING, reason="regeneration requested")
+        regenerating = regenerating.evolve(
+            proposal=None,
+            validation=None,
+            validated_sql_hash=None,
+            approval_sql_hash=None,
+            regeneration_count=regenerating.regeneration_count + 1,
+        )
+        generated = transition(
+            regenerating, QueryState.SQL_GENERATED, reason="generate regenerated SQL"
+        )
+        return self._validate_node(self._generate_node(generated))
+
     def execute_approved(self, state: QueryWorkflowState) -> QueryWorkflowState:
         """Revalidate and execute an approved Review Mode query."""
 

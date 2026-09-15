@@ -20,6 +20,16 @@ def test_edited_sql_can_only_return_to_validation() -> None:
     assert ALLOWED_TRANSITIONS[QueryState.EDITED] == frozenset({QueryState.VALIDATING})
 
 
+def test_review_ready_can_enter_regeneration() -> None:
+    assert QueryState.REGENERATING in ALLOWED_TRANSITIONS[QueryState.READY_FOR_REVIEW]
+
+
+def test_regeneration_can_only_generate_or_fail() -> None:
+    assert ALLOWED_TRANSITIONS[QueryState.REGENERATING] == frozenset(
+        {QueryState.SQL_GENERATED, QueryState.FAILED}
+    )
+
+
 def test_workflow_state_starts_received() -> None:
     state = QueryWorkflowState.from_request(QueryRequest.create("question"))
     assert state.state == QueryState.RECEIVED
