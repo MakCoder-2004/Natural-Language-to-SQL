@@ -8,35 +8,7 @@ body {
   background:
     radial-gradient(circle at 8% 12%, rgb(255 255 255 / 55%), transparent 28%), var(--color-canvas);
 }
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: min(100% - 3rem, 1320px);
-  margin: auto;
-  padding: var(--space-5) 0;
-  border-bottom: var(--border-thin);
-}
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  text-decoration: none;
-}
-.brand-mark {
-  display: grid;
-  width: 1.8rem;
-  height: 1.8rem;
-  place-items: center;
-  color: var(--color-surface);
-  border-radius: 50%;
-  background: var(--color-ink);
-  font-size: 1.1rem;
-}
-.topbar-meta,
-.design-intro,
+.workspace-identity,
 .footer {
   display: flex;
   align-items: center;
@@ -46,16 +18,13 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.topbar-meta a {
-  color: var(--color-accent-strong);
-  font-weight: 700;
-}
-.design-intro {
+.workspace-identity {
   justify-content: space-between;
-  width: min(100% - 3rem, 1320px);
-  margin: var(--space-4) auto 0;
+  grid-column: 1 / -1;
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-thin);
 }
-.design-intro span:first-child {
+.workspace-identity span:first-child {
   color: var(--color-accent-strong);
   font-weight: 700;
 }
@@ -89,17 +58,17 @@ body {
   font-size: var(--text-display);
   font-weight: 500;
   letter-spacing: -0.07em;
-  line-height: 0.92;
+  line-height: 0.96;
 }
 .workspace-heading h1 em {
   color: var(--color-accent);
   font-style: normal;
 }
 .workspace-heading > p:last-child {
-  max-width: 34rem;
+  max-width: 31rem;
   margin: var(--space-6) 0 0;
   color: var(--color-ink-muted);
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
   line-height: 1.55;
 }
 .panel,
@@ -781,21 +750,11 @@ body {
   }
 }
 @media (max-width: 720px) {
-  .topbar,
-  .design-intro,
+  .workspace-identity,
   .footer {
     width: min(100% - 2rem, 1320px);
   }
-  .topbar {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-  .topbar-meta {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .design-intro {
+  .workspace-identity {
     align-items: flex-start;
     flex-direction: column;
     gap: var(--space-2);
@@ -816,9 +775,6 @@ body {
   .right-rail {
     display: grid;
     order: 3;
-  }
-  .workspace-heading h1 {
-    font-size: clamp(2.8rem, 15vw, 5rem);
   }
   .composer-footer {
     align-items: stretch;

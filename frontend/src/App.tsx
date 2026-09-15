@@ -1,7 +1,6 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer } from "react";
 import "./index.css";
 import { queryApi } from "./api/client";
-import { ComponentLibrary } from "./components/ComponentLibrary";
 import { ClarificationPanel } from "./components/ClarificationPanel";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { QueryComposer } from "./components/QueryComposer";
@@ -11,21 +10,13 @@ import { WorkflowStatus } from "./components/WorkflowStatus";
 import { initialQueryState, queryReducer } from "./state/queryState";
 
 function App() {
-  const [path, setPath] = useState(() =>
-    window.location.pathname === "/10" ? "/" : window.location.pathname,
-  );
   const [state, dispatch] = useReducer(queryReducer, initialQueryState);
 
   useEffect(() => {
     if (window.location.pathname === "/10") {
       window.history.replaceState({}, "", "/");
     }
-    const onPopState = () => setPath(window.location.pathname);
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
   }, []);
-
-  if (path === "/library") return <ComponentLibrary />;
 
   const run = async (action: string, request: () => ReturnType<typeof queryApi.create>) => {
     dispatch({ type: "start", action });
@@ -44,31 +35,11 @@ function App() {
       <a className="skip-link" href="#workspace">
         Skip to workspace
       </a>
-      <header className="topbar">
-        <a
-          className="brand"
-          href="/"
-          onClick={(event) => {
-            event.preventDefault();
-            window.history.pushState({}, "", "/");
-            setPath("/");
-          }}
-        >
-          <span className="brand-mark" aria-hidden="true">
-            ∴
-          </span>
-          <span>Query / Grounded</span>
-        </a>
-        <div className="topbar-meta">
-          <span className="design-label">Cartographic Field Guide</span>
-          <a href="/library">Component library</a>
-        </div>
-      </header>
-      <div className="design-intro">
-        <span>SCHEMA TERRAIN</span>
-        <span>FastAPI / PostgreSQL / read-only</span>
-      </div>
       <main id="workspace" className="workspace">
+        <div className="workspace-identity" aria-label="System context">
+          <span>Schema terrain</span>
+          <span>FastAPI / PostgreSQL / read-only</span>
+        </div>
         <HistoryPanel
           entries={state.history}
           onSelect={(id) => void run("load", () => queryApi.get(id))}
@@ -151,7 +122,6 @@ function App() {
             <span className="note-glyph">⌁</span>
             <strong>Current design</strong>
             <p>A field guide for navigating schema terrain and grounded results.</p>
-            <a href="/library">Inspect the system</a>
           </div>
         </aside>
       </main>

@@ -62,7 +62,11 @@ describe("Milestone 10 application", () => {
   it("renders the field guide as the canonical production workspace", () => {
     render(<App />);
     expect(screen.getByRole("heading", { name: /ask the source/i })).toBeInTheDocument();
-    expect(screen.getByText(/cartographic field guide/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/system context/i)).toHaveTextContent(/schema terrain/i);
+    expect(screen.getByLabelText(/system context/i)).toHaveTextContent(
+      /fastapi \/ postgresql \/ read-only/i,
+    );
+    expect(screen.queryByText(/component library/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/switch design/i)).not.toBeInTheDocument();
   });
 
@@ -73,14 +77,13 @@ describe("Milestone 10 application", () => {
     expect(window.location.pathname).toBe("/");
   });
 
-  it("exposes the shared component library preview", () => {
+  it("does not expose the component library as a production route", () => {
     window.history.replaceState({}, "", "/library");
     render(<App />);
+    expect(screen.getByRole("heading", { name: /ask the source/i })).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /field guide component library/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /primary action/i })).toBeInTheDocument();
-    expect(screen.getByText(/the exact sql was rejected/i)).toBeInTheDocument();
+      screen.queryByRole("heading", { name: /field guide component library/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("completes the first Review Mode step using backend response data", async () => {
