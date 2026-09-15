@@ -43,7 +43,7 @@ function App() {
       </a>
       <main
         id="workspace"
-        className="mx-auto grid w-[min(calc(100%-3rem),1320px)] grid-cols-[13rem_minmax(0,1fr)_13rem] gap-[clamp(1.25rem,3vw,3rem)] py-16 pb-12 max-[1050px]:grid-cols-[11rem_minmax(0,1fr)] max-[1050px]:[&>.right-rail]:hidden max-[720px]:flex max-[720px]:w-[min(calc(100%-2rem),1320px)] max-[720px]:flex-col max-[720px]:gap-0 max-[720px]:py-10"
+        className="mx-auto grid w-[min(calc(100%-3rem),1320px)] grid-cols-[19rem_minmax(0,1fr)] gap-[clamp(1.5rem,3vw,3rem)] py-16 pb-12 max-[1050px]:grid-cols-[16rem_minmax(0,1fr)] max-[720px]:flex max-[720px]:w-[min(calc(100%-2rem),1320px)] max-[720px]:flex-col max-[720px]:gap-0 max-[720px]:py-10"
       >
         <div
           className="col-span-full flex items-center justify-between border-b border-border pb-3 text-xs uppercase tracking-[0.08em] text-ink-muted max-[720px]:items-start max-[720px]:flex-col max-[720px]:gap-2"
@@ -131,58 +131,7 @@ function App() {
           ) : null}
           {state.response ? <ResultsPanel response={state.response} /> : null}
         </div>
-        <aside
-          className="grid content-start gap-4 max-[1050px]:hidden max-[720px]:order-3 max-[720px]:grid"
-          aria-label="How your question is handled"
-        >
-          <div className="border-t-2 border-accent p-4 text-sm leading-[1.5] text-ink-muted">
-            <div className="mb-3 text-xs font-bold uppercase tracking-[0.13em] text-accent-strong">
-              How your question is handled
-            </div>
-            <strong className="block text-ink">Read-only field guide</strong>
-            <p className="mt-2 mb-0">A safer path from question to evidence.</p>
-          </div>
-          {[
-            [
-              "01",
-              "Relevant schema only",
-              "The system retrieves source structure relevant to your question, not the entire schema for every request.",
-            ],
-            [
-              "02",
-              "Read-only execution",
-              "SQL is checked by deterministic backend policy and runs through a read-only source connection.",
-            ],
-            [
-              "03",
-              "You stay in control",
-              "Review Mode is the default. Inspect the exact SQL, assumptions, limits, and validation state before approving it.",
-            ],
-            [
-              "04",
-              "No credentials in the browser",
-              "Database URLs, passwords, index credentials, and model keys stay on the backend.",
-            ],
-          ].map(([number, title, detail]) => (
-            <div
-              key={number}
-              className="border-t border-border pt-4 text-sm leading-[1.5] text-ink-muted"
-            >
-              <span className="font-code text-xs text-success">{number}</span>
-              <strong className="mt-1 block text-ink">{title}</strong>
-              <p className="mt-2 mb-0">{detail}</p>
-            </div>
-          ))}
-          <p className="border-t border-border pt-4 text-xs leading-[1.5] text-ink-muted">
-            The frontend displays backend decisions. It never authorizes SQL by itself.
-          </p>
-        </aside>
       </main>
-      <footer className="mx-auto flex w-[min(calc(100%-3rem),1320px)] flex-wrap justify-center gap-4 border-t border-border py-4 pb-6 text-xs uppercase tracking-[0.08em] text-ink-muted max-[720px]:w-[min(calc(100%-2rem),1320px)] max-[720px]:items-start max-[720px]:flex-col max-[720px]:gap-2">
-        <span>Review Mode is the default.</span>
-        <span>Credentials stay on the backend.</span>
-        <span>Query state lasts for this session.</span>
-      </footer>
     </div>
   );
 }

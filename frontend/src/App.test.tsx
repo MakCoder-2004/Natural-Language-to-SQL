@@ -66,11 +66,8 @@ describe("Milestone 10 application", () => {
     expect(screen.getByLabelText(/system context/i)).toHaveTextContent(
       /fastapi \/ postgresql \/ read-only/i,
     );
-    expect(
-      screen.getByRole("complementary", { name: /how your question is handled/i }),
-    ).toHaveTextContent(
-      /relevant schema only|read-only execution|you stay in control|no credentials in the browser/i,
-    );
+    expect(screen.getByRole("complementary", { name: /query history/i })).toBeInTheDocument();
+    expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
     expect(screen.queryByText(/component library/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/switch design/i)).not.toBeInTheDocument();
   });
@@ -120,7 +117,6 @@ describe("Milestone 10 application", () => {
       expect(screen.getByText(readyResponse.sql_inspector.sql)).toBeInTheDocument(),
     );
     expect(screen.getByText(/backend validated/i)).toBeInTheDocument();
-    expect(screen.getByRole("contentinfo")).toHaveTextContent(/review mode is the default/i);
     expect(screen.queryByText(/database password|connection url/i)).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       "http://localhost:8000/api/query",
