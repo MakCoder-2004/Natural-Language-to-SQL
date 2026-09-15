@@ -70,3 +70,15 @@ def test_execute_tool_has_no_model_controlled_arguments() -> None:
 def test_query_identity_is_backend_owned() -> None:
     request = QueryRequest.create("question")
     assert request.query_id != uuid4()
+
+
+def test_correction_feedback_is_backend_added_to_generation_context() -> None:
+    tool_set = _tool_set()
+    tool_set.correction_errors = ("unknown_column", "disallowed_schema")
+    tool_set.get_relevant_schema("question")
+
+    result = tool_set.generate_sql("question")
+
+    assert "Backend validation feedback" in result["question"]
+    assert "unknown_column" in result["question"]
+    assert "disallowed_schema" in result["question"]

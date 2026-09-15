@@ -8,7 +8,7 @@ from app.config import Settings
 from app.database.errors import QueryExecutionError
 from app.database.source_connection import SourceDatabase
 from app.database.source_execution import SourceExecutionBinding
-from app.database.source_query import ReadonlySqlExecutor
+from app.database.source_query import ReadonlySqlExecutor, _is_statement_timeout, _normalize_result
 from app.models.sql import SqlValidationResult, sql_hash
 from sqlalchemy import create_engine, text
 
@@ -98,3 +98,28 @@ def test_dates_are_normalized_to_iso_strings() -> None:
     from app.database.source_query import _normalize_value
 
     assert _normalize_value(date(2025, 1, 2)) == "2025-01-02"
+
+
+def test_result_byte_limit_stops_before_oversized_row() -> None:
+    result = _normalize_result(
+        columns=("payload",),
+        raw_rows=(("small",), ("x" * 1_000,)),
+        sql_hash="hash",
+        max_rows=10,
+        max_bytes=100,
+    )
+
+    assert result.rows == (("small",),)
+    assert result.truncated
+    assert result.result_bytes <= 100
+    assert result.warnings == ("result_byte_limit_reached",)
+
+
+def test_postgres_statement_timeout_sqlstate_is_recognized() -> None:
+    class TimeoutError:
+        sqlstate = "57014"
+
+    class DatabaseError:
+        orig = TimeoutError()
+
+    assert _is_statement_timeout(cast(Any, DatabaseError()))
